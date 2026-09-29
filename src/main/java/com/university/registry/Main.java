@@ -10,9 +10,12 @@ package com.university.registry;
 
 import com.university.registry.exception.*;
 import com.university.registry.model.Course;
-import com.university.registry.model.Grade;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
+import com.university.registry.util.DataSourceFactory;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Η κλάση Main είναι η βασική κλάση του προγράμματος. Κατασκευάζει κάθε Service με τη σωστή σειρά εξάρτησης.
@@ -26,7 +29,7 @@ public class Main
     private final CourseService courseService;
     private final EnrollmentService enrollmentService;
     private final GradeService gradeService;
-
+    private final DataSourceFactory dataSource;
 
     public Main()
     {
@@ -35,6 +38,7 @@ public class Main
         this.courseService = new CourseService();
         this.enrollmentService = new EnrollmentService(studentService, professorService, courseService);
         this.gradeService = new GradeService(studentService, courseService, enrollmentService);
+        this.dataSource = new DataSourceFactory();
     }
 
     /**
@@ -59,6 +63,16 @@ public class Main
      */
     public void runSmokeTest()
     {
+
+        try (Connection conn = dataSource.getDataSource().getConnection())
+        {
+            System.out.println("Database connection successful: " + conn.getCatalog());
+        }
+        catch (SQLException ex)
+        {
+            System.out.println("Database connection FAILED: " + ex.getMessage());
+        }
+
         try
         {
             Student student = new Student("AM1001", 1, "testName", "test@gmail.com", "2435464546");
@@ -76,8 +90,6 @@ public class Main
             // could throw EntityNotFoundException (not enrolled)
             // could throw DuplicateEntityException (grade already recorded)
             // could throw InvalidGradeException (out of 0-10 range)
-
-            // enrollmentService.deleteCourseSafely("CS101");
 
             float average = gradeService.getStudentAverage("AM1001");
             // could throw EntityNotFoundException or NoGradesRecordedException
