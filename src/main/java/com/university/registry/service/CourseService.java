@@ -1,5 +1,6 @@
 package com.university.registry.service;
 
+import com.university.registry.dao.CourseDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Course;
@@ -10,26 +11,27 @@ import java.util.Map;
 
 public class CourseService
 {
-    private final Map<String, Course> coursesById;
+    private final CourseDAO courseDAO;
 
-    public CourseService()
+    public CourseService(CourseDAO courseDAO)
     {
-        this.coursesById = new HashMap<>();
+
+        this.courseDAO = courseDAO;
     }
 
     public void addCourse(Course course) throws DuplicateEntityException
     {
-        if (coursesById.containsKey(course.getCourseId()))
+        if (courseDAO.findById(course.getCourseId()) != null)
         {
             throw new DuplicateEntityException("Course", course.getCourseId());
         }
 
-        coursesById.put(course.getCourseId(), course);
+        courseDAO.insert(course);
     }
 
     public Course getCourseById(String id) throws EntityNotFoundException
     {
-        Course course = coursesById.get(id);
+        Course course = courseDAO.findById(id);
         if (course == null)
         {
             throw new EntityNotFoundException("Course", id);
@@ -41,17 +43,17 @@ public class CourseService
     public void updateCourse(Course updatedCourse) throws EntityNotFoundException
     {
         getCourseById(updatedCourse.getCourseId());
-        coursesById.put(updatedCourse.getCourseId(), updatedCourse);
+        courseDAO.update(updatedCourse);
     }
 
     public void deleteCourse(String id) throws EntityNotFoundException
     {
-        getCourseById(id);
-        coursesById.remove(id);
+        Course course = getCourseById(id);
+        courseDAO.delete(course);
     }
 
     public Collection<Course> getAllCourses()
     {
-        return coursesById.values();
+        return courseDAO.findAll();
     }
 }
