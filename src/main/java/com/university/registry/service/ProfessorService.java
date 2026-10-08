@@ -1,5 +1,6 @@
 package com.university.registry.service;
 
+import com.university.registry.dao.ProfessorDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Professor;
@@ -10,26 +11,27 @@ import java.util.Map;
 
 public class ProfessorService
 {
-    private final Map<String, Professor> professorsById;
+    private final ProfessorDAO professorDAO;
 
-    public ProfessorService()
+    public ProfessorService(ProfessorDAO professorDAO)
     {
-        this.professorsById = new HashMap<>();
+
+        this.professorDAO = professorDAO;
     }
 
     public void addProfessor(Professor professor) throws DuplicateEntityException
     {
-        if (professorsById.containsKey(professor.getProfId()))
+        if (professorDAO.findById(professor.getProfId()) != null)
         {
             throw new DuplicateEntityException("Professor", professor.getProfId());
         }
 
-        professorsById.put(professor.getProfId(), professor);
+        professorDAO.insert(professor);
     }
 
     public Professor getProfById(String id) throws EntityNotFoundException
     {
-        Professor professor = professorsById.get(id);
+        Professor professor = professorDAO.findById(id);
         if (professor == null)
         {
             throw new EntityNotFoundException("Professor", id);
@@ -41,17 +43,17 @@ public class ProfessorService
     public void updateProfessor(Professor updatedProfessor) throws EntityNotFoundException
     {
         getProfById(updatedProfessor.getProfId());
-        professorsById.put(updatedProfessor.getProfId(), updatedProfessor);
+        professorDAO.update(updatedProfessor);
     }
 
     public void deleteProfessor(String id) throws EntityNotFoundException
     {
-        getProfById(id);
-        professorsById.remove(id);
+        Professor professor = getProfById(id);
+        professorDAO.delete(professor);
     }
 
     public Collection<Professor> getAllProfessors()
     {
-        return professorsById.values();
+        return professorDAO.findAll();
     }
 }
