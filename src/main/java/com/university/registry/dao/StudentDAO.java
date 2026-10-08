@@ -73,7 +73,7 @@ public class StudentDAO
      * @return the matching {@link Student}, or {@code null} if no row matches
      * @throws DataAccessException if the query itself fails
      */
-    public Student findByAM(String am)
+    public Student findByAm(String am)
     {
         String sql = "SELECT * FROM students WHERE am = ?";
 
@@ -131,7 +131,7 @@ public class StudentDAO
     /**
      * Updates every column of an existing row, matched by am.
      *
-     * @param student the student to be updated; {@code getAM()} identifies which row to update
+     * @param student the student to be updated; {@code getAm()} identifies which row to update
      * @throws DataAccessException if the update fails
      */
     public void update(Student student)
@@ -154,9 +154,9 @@ public class StudentDAO
     }
 
     /**
-     * Deletes the row matching the given student's AM.
+     * Deletes the row matching the given student's Am.
      *
-     * @param student the student to be deleted; identified by {@code getAM()}
+     * @param student the student to be deleted; identified by {@code getAm()}
      * @throws DataAccessException if the delete fails (including a foreign
      *                             key violation, if active enrollments
      *                             reference this student)
@@ -178,7 +178,7 @@ public class StudentDAO
 
     /**
      * Builds a {@link Student} from the current row of an open {@link ResultSet}.
-     * Shared by {@link #findByAM} and {@link #findAll} to avoid duplicating
+     * Shared by {@link #findByAm} and {@link #findAll} to avoid duplicating
      * the column-reading logic (DRY principle).
      *
      * @param rs a ResultSet which will get the data of a valid row (i.e. after a successful {@code rs.next()})
