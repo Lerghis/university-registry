@@ -122,6 +122,10 @@ public class GradeService
         courseService.getCourseById(grade.getCourseId());
 
         String key = grade.getStudentAm() + "-" + grade.getCourseId();
+        if (!gradesByKey.containsKey(key))
+        {
+            throw new EntityNotFoundException("Grade", key);
+        }
         gradesByKey.put(key, grade);
     }
 
@@ -131,6 +135,10 @@ public class GradeService
         courseService.getCourseById(grade.getCourseId());
 
         String key = grade.getStudentAm() + "-" + grade.getCourseId();
+        if (!gradesByKey.containsKey(key))
+        {
+            throw new EntityNotFoundException("Grade", key);
+        }
         gradesByKey.remove(key);
     }
 }
