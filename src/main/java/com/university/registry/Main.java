@@ -11,7 +11,6 @@ import com.university.registry.dao.*;
 import com.university.registry.exception.*;
 import com.university.registry.model.Course;
 import com.university.registry.model.Grade;
-import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
 import com.university.registry.util.DataSourceFactory;
@@ -44,20 +43,21 @@ public class Main
 
     public Main()
     {
-        this.studentService = new StudentService();
-        this.professorService = new ProfessorService();
-        this.courseService = new CourseService();
-        this.enrollmentService = new EnrollmentService(studentService, professorService, courseService);
-        this.gradeService = new GradeService(studentService, courseService, enrollmentService);
         this.dataSource = new DataSourceFactory();
-
-        keyboard = new Scanner(System.in);
 
         this.professorDAO = new ProfessorDAO(dataSource);
         this.courseDAO = new CourseDAO(dataSource);
         this.studentDAO = new StudentDAO(dataSource);
         this.enrollmentDAO = new EnrollmentDAO(dataSource, courseDAO);
         this.gradeDAO = new GradeDAO(dataSource);
+
+        this.studentService = new StudentService(studentDAO);
+        this.professorService = new ProfessorService(professorDAO);
+        this.courseService = new CourseService(courseDAO);
+        this.enrollmentService = new EnrollmentService(studentService, professorService, courseService);
+        this.gradeService = new GradeService(studentService, courseService, enrollmentService);
+
+        keyboard = new Scanner(System.in);
     }
 
     /**
@@ -261,10 +261,22 @@ public class Main
 
     }
 
+    private void closeDataSource()
+    {
+        dataSource.close();
+    }
     public static void main(String[] args)
     {
         System.out.println("University Registry System - project skeleton is wired up correctly.");
         Main app = new Main();
-        app.runSmokeTest();
+
+        try
+        {
+            app.runSmokeTest();
+        }
+        finally
+        {
+            app.closeDataSource();
+        }
     }
 }
