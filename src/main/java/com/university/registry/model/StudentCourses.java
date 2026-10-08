@@ -2,23 +2,23 @@ package com.university.registry.model;
 
 public class StudentCourses
 {
-    private String studentAM;
+    private String studentAm;
     private String courseId;
 
-    public StudentCourses(String studentAM, String courseId)
+    public StudentCourses(String studentAm, String courseId)
     {
-        this.studentAM = studentAM;
+        this.studentAm = studentAm;
         this.courseId = courseId;
     }
 
-    public String getStudentAM()
+    public String getStudentAm()
     {
-        return studentAM;
+        return studentAm;
     }
 
-    public void setStudentAM(String studentAM)
+    public void setStudentAm(String studentAm)
     {
-        this.studentAM = studentAM;
+        this.studentAm = studentAm;
     }
 
     public String getCourseId()

@@ -88,9 +88,7 @@ public class EnrollmentDAO
             try(ResultSet rs = stmt.executeQuery())
             {
                 rs.next(); // moves the cursor forward one row and reports whether a row exists there, false if no rows matched
-                int count = rs.getInt(1); // it reads column number 1 (1-indexed) of whatever row the cursor is currently sitting on
-
-                return count > 0;
+                return rs.getInt(1) > 0; // it reads column number 1 (1-indexed) of whatever row the cursor is currently sitting on
             }
         }
         catch (SQLException ex)
@@ -119,12 +117,10 @@ public class EnrollmentDAO
             stmt.setString(1, profId);
             stmt.setString(2, courseId);
 
-            try(ResultSet resultSet = stmt.executeQuery())
+            try(ResultSet rs = stmt.executeQuery())
             {
-                resultSet.next();
-                int count = resultSet.getInt(1);
-
-                return count > 0;
+                rs.next();
+                return rs.getInt(1) > 0;
             }
         }
         catch (SQLException ex)
@@ -218,9 +214,7 @@ public class EnrollmentDAO
             try(ResultSet rs = stmt.executeQuery())
             {
                 rs.next();
-                int count = rs.getInt(1);
-
-                return count > 0;
+                return rs.getInt(1) > 0;
             }
         }
         catch (SQLException ex)
@@ -244,9 +238,7 @@ public class EnrollmentDAO
             try(ResultSet rs = stmt.executeQuery())
             {
                 rs.next();
-                int count = rs.getInt(1);
-
-                return count > 0;
+                return rs.getInt(1) > 0;
             }
         }
         catch (SQLException ex)
@@ -270,9 +262,7 @@ public class EnrollmentDAO
             try(ResultSet rs = stmt.executeQuery())
             {
                 rs.next();
-                int count = rs.getInt(1);
-
-                return count > 0;
+                return rs.getInt(1) > 0;
             }
         }
         catch (SQLException ex)
@@ -296,9 +286,7 @@ public class EnrollmentDAO
             try(ResultSet rs = stmt.executeQuery())
             {
                 rs.next();
-                int count = rs.getInt(1);
-
-                return count > 0;
+                return rs.getInt(1) > 0;
             }
         }
         catch (SQLException ex)

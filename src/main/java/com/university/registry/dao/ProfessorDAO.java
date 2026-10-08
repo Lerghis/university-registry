@@ -126,6 +126,7 @@ public class ProfessorDAO
         {
             throw new DataAccessException("Failed to load professors", ex);
         }
+
         return allProfessors;
     }
 

@@ -49,8 +49,13 @@ public class Course
         this.courseSemester = courseSemester;
     }
 
+    @Override
     public String toString()
     {
-        return "Κωδικός μαθήματος: " + courseId + "\tΤίτλος μαθήματος: " + courseTitle + "\tΕξάμηνο: " + courseSemester;
+        return "Course{" +
+                "courseId='" + courseId + '\'' +
+                ", courseTitle='" + courseTitle + '\'' +
+                ", courseSemester=" + courseSemester +
+                '}';
     }
 }

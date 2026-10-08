@@ -16,6 +16,8 @@ package com.university.registry.exception;
  * but instead of one class carrying an integer error code that callers had
  * to check with an {@code if}, each error case now gets its own type -
  * which the compiler and IDE can help you catch correctly.
+ *
+ * This class and it's subclasses represent domain rule violations (things my own validation logic decides to reject).
  */
 public abstract class RegistryException extends Exception
 {

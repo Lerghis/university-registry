@@ -43,8 +43,13 @@ public class Person
         this.phone = phone;
     }
 
+    @Override
     public String toString()
     {
-        return "\tΟνοματεπώνυμο: " + name + "\tE-mail: " + email + "\tΤηλέφωνο: " + phone;
+        return "Person{" +
+                "name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
     }
 }

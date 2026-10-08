@@ -53,7 +53,7 @@ public class StudentDAO
         // asks that specific Connection to prepare the SQL text, with its five ? placeholders, for execution. The returned PreparedStatement is now tied to that one connection.
         try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, student.getAM());
+            stmt.setString(1, student.getAm());
             stmt.setString(2, student.getName());
             stmt.setString(3, student.getEmail());
             stmt.setString(4, student.getPhone());
@@ -83,7 +83,7 @@ public class StudentDAO
 
             try(ResultSet rs = stmt.executeQuery()) // executeQuery = for SELECT, return a ResultSet
             {
-                if (rs.next()) // moves to the first row; false if no rows matched
+                if (rs.next()) // moves the cursor forward one row and reports whether a row exists there, false if no rows matched
                 {
                     return mapRowToStudent(rs);
                 }
@@ -124,6 +124,7 @@ public class StudentDAO
         {
             throw new DataAccessException("Failed to load students", ex);
         }
+
         return allStudents;
     }
 
@@ -143,7 +144,7 @@ public class StudentDAO
             stmt.setString(2, student.getEmail());
             stmt.setString(3, student.getPhone());
             stmt.setInt(4, student.getSemester());
-            stmt.setString(5, student.getAM());
+            stmt.setString(5, student.getAm());
             stmt.executeUpdate(); // executeUpdate = for UPDATE, returns rows affected
         }
         catch (SQLException ex)
@@ -166,7 +167,7 @@ public class StudentDAO
 
         try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, student.getAM());
+            stmt.setString(1, student.getAm());
             stmt.executeUpdate(); // executeUpdate = for DELETE, returns rows affected
         }
         catch (SQLException ex)

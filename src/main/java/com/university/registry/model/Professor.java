@@ -32,8 +32,15 @@ public class Professor extends Person
         this.specialty = specialty.trim();
     }
 
+    @Override
     public String toString()
     {
-        return "Κωδικός Καθηγητή: " + profId + super.toString() + "\tΕδικότητα: " + specialty;
+        return "Professor{" +
+                "profId='" + profId + '\'' +
+                ", specialty='" + specialty + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
     }
 }

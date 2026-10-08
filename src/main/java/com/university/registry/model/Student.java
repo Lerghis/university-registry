@@ -4,25 +4,25 @@ import com.university.registry.exception.InvalidSemesterException;
 
 public class Student extends Person
 {
-    private String AM;
+    private String am;
     private int semester;
 
 
-    public Student(String AM, int semester, String name, String email, String phone) throws InvalidSemesterException
+    public Student(String am, int semester, String name, String email, String phone) throws InvalidSemesterException
     {
         super(name, email, phone);
-        this.AM = AM.trim();
+        this.am = am.trim();
         setSemester(semester);
     }
 
-    public String getAM()
+    public String getAm()
     {
-        return AM;
+        return am;
     }
 
-    public void setAM(String AM)
+    public void setAm(String am)
     {
-        this.AM = AM.trim();
+        this.am = am.trim();
     }
 
     public int getSemester()
@@ -39,8 +39,15 @@ public class Student extends Person
         this.semester = semester;
     }
 
+    @Override
     public String toString()
     {
-        return "Αριθμός Μητρώου: " + AM + super.toString() + "\tΕξάμηνο: " + semester;
+        return "Student{" +
+                "am='" + am + '\'' +
+                ", semester=" + semester +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
     }
 }

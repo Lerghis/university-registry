@@ -4,25 +4,25 @@ import com.university.registry.exception.InvalidGradeException;
 
 public class Grade
 {
-    private String studentAM;
+    private String studentAm;
     private String courseId;
     private float gradeValue;
 
-    public Grade(String studentAM, String courseId, float gradeValue) throws InvalidGradeException
+    public Grade(String studentAm, String courseId, float gradeValue) throws InvalidGradeException
     {
-        this.studentAM = studentAM.trim();
+        this.studentAm = studentAm.trim();
         this.courseId = courseId.trim();
         setGradeValue(gradeValue);
     }
 
-    public String getStudentAM()
+    public String getStudentAm()
     {
-        return studentAM;
+        return studentAm;
     }
 
-    public void setStudentAM(String studentAM)
+    public void setStudentAm(String studentAm)
     {
-        this.studentAM = studentAM;
+        this.studentAm = studentAm;
     }
 
     public String getCourseId()

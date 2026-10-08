@@ -11,26 +11,26 @@ import java.util.Map;
 public class StudentService
 {
     // Keyed by AM for O(1) lookup
-    private final Map<String, Student> studentsByAM;
+    private final Map<String, Student> studentsByAm;
 
     public StudentService()
     {
-        this.studentsByAM = new HashMap<>(); // This is a manual constructor injection
+        this.studentsByAm = new HashMap<>();
     }
 
     public void addStudent(Student student) throws DuplicateEntityException
     {
-        if (studentsByAM.containsKey(student.getAM()))
+        if (studentsByAm.containsKey(student.getAm()))
         {
-            throw new DuplicateEntityException("Student", student.getAM());
+            throw new DuplicateEntityException("Student", student.getAm());
         }
 
-        studentsByAM.put(student.getAM(), student);
+        studentsByAm.put(student.getAm(), student);
     }
 
-    public Student getStudentByAM(String am) throws EntityNotFoundException
+    public Student getStudentByAm(String am) throws EntityNotFoundException
     {
-        Student student = studentsByAM.get(am);
+        Student student = studentsByAm.get(am);
         if (student == null)
         {
             throw new EntityNotFoundException("Student", am);
@@ -41,18 +41,18 @@ public class StudentService
 
     public void updateStudent(Student updatedStudent) throws EntityNotFoundException
     {
-        getStudentByAM(updatedStudent.getAM());
-        studentsByAM.put(updatedStudent.getAM(), updatedStudent);
+        getStudentByAm(updatedStudent.getAm());
+        studentsByAm.put(updatedStudent.getAm(), updatedStudent);
     }
 
     public void deleteStudent(String am) throws EntityNotFoundException
     {
-        getStudentByAM(am);
-        studentsByAM.remove(am);
+        getStudentByAm(am);
+        studentsByAm.remove(am);
     }
 
     public Collection<Student> getAllStudents()
     {
-        return studentsByAM.values();
+        return studentsByAm.values();
     }
 }

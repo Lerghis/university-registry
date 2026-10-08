@@ -4,18 +4,21 @@ package com.university.registry;
  * Application entry point.
  * <p>
  * For now this just confirms the project skeleton builds and runs. Once the
- * service and DAO layers exist, this will bootstrap the database connection
- * and launch the JavaFX application instead.
+ * service and DAO layers exist, this will bootstrap the database connection.
  */
 
+import com.university.registry.dao.*;
 import com.university.registry.exception.*;
 import com.university.registry.model.Course;
+import com.university.registry.model.Grade;
+import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
 import com.university.registry.util.DataSourceFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Scanner;
 
 /**
  * Η κλάση Main είναι η βασική κλάση του προγράμματος. Κατασκευάζει κάθε Service με τη σωστή σειρά εξάρτησης.
@@ -31,6 +34,14 @@ public class Main
     private final GradeService gradeService;
     private final DataSourceFactory dataSource;
 
+    private final StudentDAO studentDAO;
+    private final ProfessorDAO professorDAO;
+    private final CourseDAO courseDAO;
+    private final EnrollmentDAO enrollmentDAO;
+    private final GradeDAO gradeDAO;
+
+    Scanner keyboard;
+
     public Main()
     {
         this.studentService = new StudentService();
@@ -39,6 +50,14 @@ public class Main
         this.enrollmentService = new EnrollmentService(studentService, professorService, courseService);
         this.gradeService = new GradeService(studentService, courseService, enrollmentService);
         this.dataSource = new DataSourceFactory();
+
+        keyboard = new Scanner(System.in);
+
+        this.professorDAO = new ProfessorDAO(dataSource);
+        this.courseDAO = new CourseDAO(dataSource);
+        this.studentDAO = new StudentDAO(dataSource);
+        this.enrollmentDAO = new EnrollmentDAO(dataSource, courseDAO);
+        this.gradeDAO = new GradeDAO(dataSource);
     }
 
     /**
@@ -63,7 +82,6 @@ public class Main
      */
     public void runSmokeTest()
     {
-
         try (Connection conn = dataSource.getDataSource().getConnection())
         {
             System.out.println("Database connection successful: " + conn.getCatalog());
@@ -72,6 +90,89 @@ public class Main
         {
             System.out.println("Database connection FAILED: " + ex.getMessage());
         }
+
+
+        try
+        {
+            Student student2 = new Student("111", 1, "Nick", "Nick.com", "321");
+            studentDAO.insert(student2);
+
+            enrollmentDAO.enrollStudent("111", "CID1");
+        }
+        catch (DataAccessException | RegistryException ex)
+        {
+            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+        }
+
+        System.out.println("\n*********************************************************");
+        System.out.println("NEW ENTRIES\n");
+        try
+        {
+            Course course = new Course("CID3", "ROBOTICS", 4);
+            courseDAO.insert(course);
+        }
+        catch (DataAccessException | RegistryException ex)
+        {
+            System.out.println("Error while inserting course. " + ex.getMessage());
+        }
+
+        try
+        {
+            enrollmentDAO.enrollStudent("13021", "CID2");
+        }
+        catch (DataAccessException ex)
+        {
+            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+        }
+
+        System.out.println("\n*********************************************************************");
+        System.out.println("*********************************************************************");
+        System.out.println("TIME TO SMOKE TEST GradeDAO\n");
+
+        try
+        {
+            Grade grade = new Grade("13021", "CID1", 4.6f);
+            gradeDAO.update(grade);
+
+            gradeDAO.delete(grade);
+        }
+        catch (DataAccessException | RegistryException ex)
+        {
+            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+        }
+
+        try
+        {
+            Grade grade = new Grade("13021", "CID2", 7.6f);
+            gradeDAO.insert(grade);
+        }
+        catch (DataAccessException | RegistryException ex)
+        {
+            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+        }
+
+        System.out.println("Does this student has this course graded yet? " + gradeDAO.exists("13021", "CID3"));
+        System.out.println("Is there any grade for this student: " + gradeDAO.hasAnyGradeForStudent("13021"));
+        System.out.println("The average grade for student: " + gradeDAO.findStudentAverage("13021"));
+        System.out.println("The average grade for course: " + gradeDAO.findCourseAverage("CID1"));
+
+        System.out.println("**************************************************");
+
+        System.out.println(enrollmentDAO.hasAnyEnrollmentForCourse("CID1"));
+        System.out.println(enrollmentDAO.hasAnyAssignmentForCourse("CID1"));
+        System.out.println(enrollmentDAO.findCoursesForStudent("13021"));
+        System.out.println(enrollmentDAO.findCoursesForProfessor("ID102"));
+        System.out.println(enrollmentDAO.hasAnyAssignmentForProfessor("ID102"));
+        System.out.println(enrollmentDAO.isProfessorAssigned("ID102", "CID1"));
+        System.out.println("\n************************************************************");
+        System.out.println("STUDENT ENROLLMENTS: ");
+        System.out.println(enrollmentDAO.hasAnyEnrollmentForStudent("13021"));
+        System.out.println("IS STUDENT ENROLLED FOR CID2?");
+        System.out.println(enrollmentDAO.isStudentEnrolled("13021", "CID2"));
+        System.out.println();
+        System.out.println("HERE ARE ALL THE EXISTING COURSES: " + courseDAO.findAll());
+        System.out.println("HERE ARE ALL THE EXISTING STUDENTS: " + studentDAO.findAll());
+        System.out.println("HERE ARE ALL THE EXISTING PROFESSORS: " + professorDAO.findAll());
 
         try
         {

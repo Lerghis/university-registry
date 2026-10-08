@@ -40,15 +40,15 @@ public class EnrollmentService
         this.professorAssignments = new ArrayList<>();
     }
 
-    public void assignCourseToStudent(String am, String courseId) throws EntityNotFoundException, DuplicateEntityException
+    public void assignCourseToStudent(String studentAm, String courseId) throws EntityNotFoundException, DuplicateEntityException
     {
-        studentService.getStudentByAM(am);
+        studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
 
         boolean alreadyEnrolled = false;
         for (StudentCourses enrollment : studentEnrollments)
         {
-            if (enrollment.getStudentAM().equals(am) && enrollment.getCourseId().equals(courseId))
+            if (enrollment.getStudentAm().equals(studentAm) && enrollment.getCourseId().equals(courseId))
             {
                 alreadyEnrolled = true;
                 break;
@@ -57,10 +57,10 @@ public class EnrollmentService
 
         if (alreadyEnrolled)
         {
-            throw new DuplicateEntityException("Enrollment", am + "-" + courseId);
+            throw new DuplicateEntityException("Enrollment", studentAm + "-" + courseId);
         }
 
-        studentEnrollments.add(new StudentCourses(am, courseId));
+        studentEnrollments.add(new StudentCourses(studentAm, courseId));
     }
 
     public void assignCourseToProfessor(String profId, String courseId) throws EntityNotFoundException, DuplicateEntityException
@@ -86,7 +86,7 @@ public class EnrollmentService
         professorAssignments.add(new ProfessorCourses(profId, courseId));
     }
 
-    public List<Course> getCoursesForStudent(String am) throws EntityNotFoundException
+    public List<Course> getCoursesForStudent(String studentAm) throws EntityNotFoundException
     {
         /*
         1. Περνάμε στη μέθοδο παραμετρικά ένα ΑΜ.
@@ -112,12 +112,12 @@ public class EnrollmentService
         7. Τέλος, όταν η λούπα τελειώσει επιστρέφουμε τη λίστα που περιέχει όλα τα Courses του φοιτητή με το συγκεκριμένο ΑΜ που περάσαμε παραμετρικά στη μέθοδο.
          */
 
-        studentService.getStudentByAM(am); // επιβεβαιώνουμε ότι ο φοιτητής υπάρχει
+        studentService.getStudentByAm(studentAm); // επιβεβαιώνουμε ότι ο φοιτητής υπάρχει
 
         List<Course> courses = new ArrayList<>();
         for (StudentCourses enrollment : studentEnrollments)
         {
-            if (enrollment.getStudentAM().equals(am))
+            if (enrollment.getStudentAm().equals(studentAm))
             {
                 Course course = courseService.getCourseById(enrollment.getCourseId());
                 courses.add(course);
@@ -167,19 +167,19 @@ public class EnrollmentService
         courseService.deleteCourse(courseId);
     }
 
-    public void deleteStudentSafely(String am) throws EntityNotFoundException, EntityInUseException
+    public void deleteStudentSafely(String studentAm) throws EntityNotFoundException, EntityInUseException
     {
-        studentService.getStudentByAM(am);
+        studentService.getStudentByAm(studentAm);
 
         for (StudentCourses enrollment : studentEnrollments)
         {
-            if (enrollment.getStudentAM().equals(am))
+            if (enrollment.getStudentAm().equals(studentAm))
             {
-                throw new EntityInUseException("Student", am);
+                throw new EntityInUseException("Student", studentAm);
             }
         }
 
-        studentService.deleteStudent(am);
+        studentService.deleteStudent(studentAm);
     }
 
     public void deleteProfessorSafely(String profId) throws EntityNotFoundException, EntityInUseException

@@ -28,16 +28,16 @@ public class GradeService
         this.gradesByKey = new HashMap<>();
     }
 
-    public void recordGrade(String studentAM, String courseId, float gradeValue) throws EntityNotFoundException, DuplicateEntityException, InvalidGradeException
+    public void recordGrade(String studentAm, String courseId, float gradeValue) throws EntityNotFoundException, DuplicateEntityException, InvalidGradeException
     {
         /*
-        Clean code - Fail Fast principle: student exists → course exists → enrollment exists → duplicate check → construct. This makes sure no precondition was violated before
-        we reach the last operation.
+        Clean code - Fail Fast principle: student exists → course exists → enrollment exists → duplicate check → construct.
+        This makes sure no precondition was violated before we reach the last operation.
          */
-        studentService.getStudentByAM(studentAM); // This call is essentially an Abstraction. We do the call without knowing that the class is backed by a HashMap internally
+        studentService.getStudentByAm(studentAm); // This call is essentially an Abstraction. We do the call without knowing that the class is backed by a HashMap internally
         courseService.getCourseById(courseId); // Check if course exists
 
-        List<Course> enrolledCourses = enrollmentService.getCoursesForStudent(studentAM);
+        List<Course> enrolledCourses = enrollmentService.getCoursesForStudent(studentAm);
         boolean isEnrolled = false;
 
         for (Course course : enrolledCourses) // check if enrollment exists
@@ -51,44 +51,24 @@ public class GradeService
 
         if (!isEnrolled)
         {
-            throw new EntityNotFoundException("Enrollment", studentAM + "-" + courseId);
+            throw new EntityNotFoundException("Enrollment", studentAm + "-" + courseId);
         }
 
-        String key = studentAM + "-" + courseId;
+        String key = studentAm + "-" + courseId;
 
         if (gradesByKey.containsKey(key)) // duplicate check
         {
             throw new DuplicateEntityException("Grade", key);
         }
 
-        Grade newGrade = new Grade(studentAM, courseId, gradeValue); // construct
+        Grade newGrade = new Grade(studentAm, courseId, gradeValue); // construct
         gradesByKey.put(key, newGrade); // add
     }
 
-    public float getStudentAverage(String studentAM) throws EntityNotFoundException, NoGradesRecordedException
+    public float getStudentAverage(String studentAm) throws EntityNotFoundException, NoGradesRecordedException
     {
-        studentService.getStudentByAM(studentAM); // check if the student exists
-
-        float sum = 0;
-        int count = 0;
-
-        for (Grade grade : gradesByKey.values())
-        {
-            if (grade.getStudentAM().equals(studentAM))
-            {
-                sum = sum + grade.getGradeValue();
-                count++;
-            }
-        }
-
-        if (count == 0)
-        {
-            throw new NoGradesRecordedException("Student", studentAM);
-        }
-        else
-        {
-            return sum / count;
-        }
+        studentService.getStudentByAm(studentAm); // check if the student exists
+        return calculateAverage(studentAm, true);
     }
 
     public float getCourseAverage(String courseId) throws EntityNotFoundException, NoGradesRecordedException
@@ -97,14 +77,18 @@ public class GradeService
         return calculateAverage(courseId, false);
     }
 
-    /**\
-     * This method is private because it is an internal implementation detail. Nothing outside GradeService should ever call it directly with a raw boolean flag.
-     * The two public methods (getStudentAverage/getCourseAverage) exist specifically to give callers a clear, self-explanatory entry point,
-     * while the messy shared mechanics stay hidden behind them. This is the same encapsulation idea as your private HashMap fields — just applied to behavior instead of data.
-     * @param identifier
-     * @param matchByStudent
-     * @return
-     * @throws NoGradesRecordedException
+    /**
+     * This method is private because it is an internal implementation detail.
+     * Nothing outside GradeService should ever call it directly with a raw boolean flag.
+     * The two public methods (getStudentAverage/getCourseAverage) exist specifically to
+     * give callers a clear, self-explanatory entry point, while the messy shared mechanics
+     * stay hidden behind them. This is the same encapsulation idea as the private
+     * HashMap fields — just applied to behavior instead of data.
+     *
+     * @param identifier either the studentAm or the courseId
+     * @param matchByStudent the boolean flag to know if we are comparing am's or id's
+     * @return the float value of the grade average
+     * @throws NoGradesRecordedException if there are no grades recorded to calculate the avg
      */
     private float calculateAverage(String identifier, boolean matchByStudent) throws NoGradesRecordedException
     {
@@ -113,7 +97,7 @@ public class GradeService
 
         for (Grade grade : gradesByKey.values())
         {
-            String fieldToCompare = matchByStudent ? grade.getStudentAM() : grade.getCourseId();
+            String fieldToCompare = matchByStudent ? grade.getStudentAm() : grade.getCourseId();
             if (fieldToCompare.equals(identifier))
             {
                 sum = sum + grade.getGradeValue();
@@ -129,5 +113,24 @@ public class GradeService
         {
             return sum / count;
         }
+    }
+
+    public void updateGrade(Grade grade) throws EntityNotFoundException
+    {
+        // key value pair for gradesByKey HashMap = <String = key, Value = gradeValue>
+        studentService.getStudentByAm(grade.getStudentAm());
+        courseService.getCourseById(grade.getCourseId());
+
+        String key = grade.getStudentAm() + "-" + grade.getCourseId();
+        gradesByKey.put(key, grade);
+    }
+
+    public void deleteGrade(Grade grade) throws EntityNotFoundException
+    {
+        studentService.getStudentByAm(grade.getStudentAm());
+        courseService.getCourseById(grade.getCourseId());
+
+        String key = grade.getStudentAm() + "-" + grade.getCourseId();
+        gradesByKey.remove(key);
     }
 }

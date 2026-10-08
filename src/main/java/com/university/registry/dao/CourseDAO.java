@@ -125,6 +125,7 @@ public class CourseDAO
         {
             throw new DataAccessException("Failed to load courses", ex);
         }
+
         return allCourses;
     }
 
@@ -191,7 +192,7 @@ public class CourseDAO
      *         validated courses are ever inserted, so it signals corrupted
      *         data rather than a normal, expected failure
      */
-    private Course mapRowToCourse(ResultSet rs) throws SQLException
+    Course mapRowToCourse(ResultSet rs) throws SQLException
     {
         String courseId = rs.getString("course_id");
         String courseTitle = rs.getString("course_title");
