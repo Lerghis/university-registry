@@ -40,11 +40,11 @@ public class StudentDAO
     }
 
     /**
-     * Inserts a new row into {@code students}.
+     * Inserts a new row into {@code students}
      *
-     * @param student the student to be inserted assumed already validated (e.g. via its constructor) before being passed here.
+     * @param student the student to be inserted assumed already validated (e.g. via its constructor) before being passed here
      *
-     * @throws DataAccessException if the insert fails for any database reason, including a duplicate primary key (am).
+     * @throws DataAccessException if the insert fails for any database reason, including a duplicate primary key (am)
      */
     public void insert(Student student)
     {
@@ -67,7 +67,7 @@ public class StudentDAO
     }
 
     /**
-     * Looks up a single student by its am.
+     * Looks up a single student by its am
      *
      * @param am the Student's am (primary key)
      * @return the matching {@link Student}, or {@code null} if no row matches
@@ -100,7 +100,7 @@ public class StudentDAO
     }
 
     /**
-     * Loads every row in {@code students}.
+     * Loads every row in {@code students}
      *
      * @return all students currently stored, as a list (if the table has no rows, method will return empty list)
      * @throws DataAccessException if the query fails
@@ -129,7 +129,7 @@ public class StudentDAO
     }
 
     /**
-     * Updates every column of an existing row, matched by am.
+     * Updates every column of an existing row, matched by am
      *
      * @param student the student to be updated; {@code getAm()} identifies which row to update
      * @throws DataAccessException if the update fails
@@ -154,7 +154,7 @@ public class StudentDAO
     }
 
     /**
-     * Deletes the row matching the given student's Am.
+     * Deletes the row matching the given student's Am
      *
      * @param student the student to be deleted; identified by {@code getAm()}
      * @throws DataAccessException if the delete fails (including a foreign
