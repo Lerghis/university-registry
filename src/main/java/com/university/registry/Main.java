@@ -8,15 +8,15 @@ package com.university.registry;
  */
 
 import com.university.registry.dao.*;
-import com.university.registry.exception.*;
+import com.university.registry.exception.DuplicateEntityException;
+import com.university.registry.exception.EntityNotFoundException;
+import com.university.registry.exception.RegistryException;
 import com.university.registry.model.Course;
-import com.university.registry.model.Grade;
 import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
 import com.university.registry.util.DataSourceFactory;
 
-import java.rmi.registry.Registry;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -33,7 +33,7 @@ public class Main
     private final CourseService courseService;
     private final EnrollmentService enrollmentService;
     private final GradeService gradeService;
-    private final DataSourceFactory dataSource;
+    private final DataSourceFactory dataSourceFactory;
 
     private final StudentDAO studentDAO;
     private final ProfessorDAO professorDAO;
@@ -45,18 +45,18 @@ public class Main
 
     public Main()
     {
-        this.dataSource = new DataSourceFactory();
+        this.dataSourceFactory = new DataSourceFactory();
 
-        this.professorDAO = new ProfessorDAO(dataSource);
-        this.courseDAO = new CourseDAO(dataSource);
-        this.studentDAO = new StudentDAO(dataSource);
-        this.enrollmentDAO = new EnrollmentDAO(dataSource, courseDAO);
-        this.gradeDAO = new GradeDAO(dataSource);
+        this.professorDAO = new ProfessorDAO(dataSourceFactory);
+        this.courseDAO = new CourseDAO(dataSourceFactory);
+        this.studentDAO = new StudentDAO(dataSourceFactory);
+        this.enrollmentDAO = new EnrollmentDAO(dataSourceFactory, courseDAO);
+        this.gradeDAO = new GradeDAO(dataSourceFactory);
 
         this.studentService = new StudentService(studentDAO);
         this.professorService = new ProfessorService(professorDAO);
         this.courseService = new CourseService(courseDAO);
-        this.enrollmentService = new EnrollmentService(studentService, professorService, courseService);
+        this.enrollmentService = new EnrollmentService(studentService, professorService, courseService, enrollmentDAO);
         this.gradeService = new GradeService(studentService, courseService, enrollmentService);
 
         keyboard = new Scanner(System.in);
@@ -85,7 +85,7 @@ public class Main
      */
     public void runSmokeTest()
     {
-        try (Connection conn = dataSource.getDataSource().getConnection())
+        try (Connection conn = dataSourceFactory.getDataSource().getConnection())
         {
             System.out.println("Database connection successful: " + conn.getCatalog());
         }
@@ -133,14 +133,14 @@ public class Main
         }
         System.out.println(studentService.getAllStudents());
 
-        try
-        {
-            studentService.deleteStudent("1");
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
+//        try
+//        {
+//            studentService.deleteStudent("1");
+//        }
+//        catch (RegistryException ex)
+//        {
+//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+//        }
 
         System.out.println("\n**************************************************************\n");
 
@@ -175,20 +175,20 @@ public class Main
 
         System.out.println(professorService.getAllProfessors());
 
-        try
-        {
-            professorService.deleteProfessor("1");
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
+//        try
+//        {
+//            professorService.deleteProfessor("1");
+//        }
+//        catch (RegistryException ex)
+//        {
+//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+//        }
 
         System.out.println("\n**************************************************************\n");
 
         try
         {
-            Course course = new Course("1", "courseTitle", 1);
+            Course course = new Course("2", "courseTitle2", 1);
             courseService.addCourse(course);
         }
         catch (RegistryException ex)
@@ -217,19 +217,55 @@ public class Main
 
         System.out.println(courseService.getAllCourses());
 
+//        try
+//        {
+//            courseService.deleteCourse("1");
+//        }
+//        catch (RegistryException ex)
+//        {
+//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+//        }
+
+        System.out.println("\n**************************************************************");
+        System.out.println("**************************************************************");
+        System.out.println("**************************************************************\n");
+
         try
         {
-            courseService.deleteCourse("1");
+            enrollmentService.assignCourseToStudent("1", "2");
+            System.out.println("ERROR: expected a DuplicateEntityException, but none was thrown!");
+        }
+        catch (DuplicateEntityException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+        catch (EntityNotFoundException ex)
+        {
+            System.out.println("ERROR: wrong exception type: " + ex.getMessage());
+        }
+
+        try
+        {
+            enrollmentService.deleteCourseSafely("1");
         }
         catch (RegistryException ex)
         {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        try
+        {
+            System.out.println(enrollmentService.getCoursesForStudent("1"));
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
         }
     }
 
     private void closeDataSource()
     {
-        dataSource.close();
+        dataSourceFactory.close();
     }
     public static void main(String[] args)
     {
