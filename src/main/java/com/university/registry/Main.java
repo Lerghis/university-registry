@@ -12,6 +12,7 @@ import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.exception.RegistryException;
 import com.university.registry.model.Course;
+import com.university.registry.model.Grade;
 import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
@@ -47,9 +48,9 @@ public class Main
     {
         this.dataSourceFactory = new DataSourceFactory();
 
+        this.studentDAO = new StudentDAO(dataSourceFactory);
         this.professorDAO = new ProfessorDAO(dataSourceFactory);
         this.courseDAO = new CourseDAO(dataSourceFactory);
-        this.studentDAO = new StudentDAO(dataSourceFactory);
         this.enrollmentDAO = new EnrollmentDAO(dataSourceFactory, courseDAO);
         this.gradeDAO = new GradeDAO(dataSourceFactory);
 
@@ -57,7 +58,7 @@ public class Main
         this.professorService = new ProfessorService(professorDAO);
         this.courseService = new CourseService(courseDAO);
         this.enrollmentService = new EnrollmentService(studentService, professorService, courseService, enrollmentDAO);
-        this.gradeService = new GradeService(studentService, courseService, enrollmentService);
+        this.gradeService = new GradeService(studentService, courseService, enrollmentService, gradeDAO);
 
         keyboard = new Scanner(System.in);
     }
@@ -104,7 +105,7 @@ public class Main
 
         try
         {
-            Student student = new Student("1", 1, "testStudent1", "testEmail1", "65836758493");
+            Student student = new Student("2", 1, "testStudent2", "testEmail2", "658386746753");
             studentService.addStudent(student);
         }
         catch (RegistryException ex)
@@ -188,7 +189,7 @@ public class Main
 
         try
         {
-            Course course = new Course("2", "courseTitle2", 1);
+            Course course = new Course("1", "courseTitle1", 1);
             courseService.addCourse(course);
         }
         catch (RegistryException ex)
@@ -232,7 +233,7 @@ public class Main
 
         try
         {
-            enrollmentService.assignCourseToStudent("1", "2");
+            enrollmentService.assignCourseToStudent("1", "3");
             System.out.println("ERROR: expected a DuplicateEntityException, but none was thrown!");
         }
         catch (DuplicateEntityException ex)
@@ -256,6 +257,48 @@ public class Main
         try
         {
             System.out.println(enrollmentService.getCoursesForStudent("1"));
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        System.out.println("\n**************************************************************");
+        System.out.println("**************************************************************");
+        System.out.println("**************************************************************\n");
+
+        try
+        {
+            gradeService.recordGrade("1", "3", 0);
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        try
+        {
+            Grade grade = new Grade("2", "2", 7);
+            gradeService.updateGrade(grade);
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        try
+        {
+            System.out.println(gradeService.getStudentAverage("1"));
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        try
+        {
+            Grade grade = new Grade("2", "1", 5.6f);
+            gradeService.deleteGrade(grade);
         }
         catch (RegistryException ex)
         {

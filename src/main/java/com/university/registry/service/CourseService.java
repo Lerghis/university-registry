@@ -1,11 +1,9 @@
 package com.university.registry.service;
 
 import com.university.registry.dao.CourseDAO;
-import com.university.registry.dao.StudentDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Course;
-import com.university.registry.model.Student;
 
 import java.util.Collection;
 

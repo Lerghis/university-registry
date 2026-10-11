@@ -1,144 +1,146 @@
 package com.university.registry.service;
 
 
+import com.university.registry.dao.GradeDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.exception.InvalidGradeException;
 import com.university.registry.exception.NoGradesRecordedException;
-import com.university.registry.model.Course;
 import com.university.registry.model.Grade;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+/**
+ * Business-logic layer for Grade objects.
+ * <p>
+ * Decides what the stored data means (a missing row becomes an
+ * {@link EntityNotFoundException}, an existing row on insert becomes a
+ * {@link DuplicateEntityException}), an invalid grade value becomes a
+ * {@link InvalidGradeException}, a missing row in grade value becomes a
+ * {@link NoGradesRecordedException} and delegates all actual storage to
+ * {@link GradeDAO}. Holds no data itself.
+ * <p>
+ * All these exceptions are checked, so methods declare them with {@code throws}.
+ * Database failures surface separately as the unchecked
+ * {@code DataAccessException}.
+ */
 public class GradeService
 {
     private final StudentService studentService;
     private final CourseService courseService;
     private final EnrollmentService enrollmentService; // to record grades only for student that are enrolled in courses
-    private final Map<String, Grade> gradesByKey; // Encapsulation. The only way anything outside this class can affect grade data is through recordGrade()
+    private final GradeDAO gradeDAO;
 
-
-    public GradeService(StudentService studentService, CourseService courseService, EnrollmentService enrollmentService)
+    public GradeService(StudentService studentService, CourseService courseService, EnrollmentService enrollmentService, GradeDAO gradeDAO)
     {
         this.studentService = studentService;
         this.courseService = courseService;
         this.enrollmentService = enrollmentService;
-        this.gradesByKey = new HashMap<>();
+        this.gradeDAO = gradeDAO;
     }
 
+    /**
+     * Records a grade in a enrolled student.
+     *
+     * @param studentAm the student's AM
+     * @param courseId the course's id
+     * @param gradeValue the value of the grade
+     * @throws EntityNotFoundException if the student or the course doesn't exist
+     * @throws DuplicateEntityException if a grade has already been recorded
+     * @throws InvalidGradeException if the grade to be recorded has an invalid value
+     */
     public void recordGrade(String studentAm, String courseId, float gradeValue) throws EntityNotFoundException, DuplicateEntityException, InvalidGradeException
     {
-        /*
-        Clean code - Fail Fast principle: student exists → course exists → enrollment exists → duplicate check → construct.
-        This makes sure no precondition was violated before we reach the last operation.
-         */
-        studentService.getStudentByAm(studentAm); // This call is essentially an Abstraction. We do the call without knowing that the class is backed by a HashMap internally
-        courseService.getCourseById(courseId); // Check if course exists
+        studentService.getStudentByAm(studentAm); // This call is essentially an Abstraction. We do the call without knowing that the class calls the StudenDAO class in order the check for the student's existence
+        courseService.getCourseById(courseId);
 
-        List<Course> enrolledCourses = enrollmentService.getCoursesForStudent(studentAm);
-        boolean isEnrolled = false;
-
-        for (Course course : enrolledCourses) // check if enrollment exists
-        {
-            if (course.getCourseId().equals(courseId))
-            {
-                isEnrolled = true;
-                break;
-            }
-        }
-
-        if (!isEnrolled)
+        if (!enrollmentService.isStudentEnrolled(studentAm, courseId))
         {
             throw new EntityNotFoundException("Enrollment", studentAm + "-" + courseId);
         }
 
-        String key = studentAm + "-" + courseId;
-
-        if (gradesByKey.containsKey(key)) // duplicate check
+        if (gradeDAO.exists(studentAm, courseId))
         {
-            throw new DuplicateEntityException("Grade", key);
+            throw new DuplicateEntityException("Grade", studentAm + "-" + courseId);
         }
 
-        Grade newGrade = new Grade(studentAm, courseId, gradeValue); // construct
-        gradesByKey.put(key, newGrade); // add
-    }
-
-    public float getStudentAverage(String studentAm) throws EntityNotFoundException, NoGradesRecordedException
-    {
-        studentService.getStudentByAm(studentAm); // check if the student exists
-        return calculateAverage(studentAm, true);
-    }
-
-    public float getCourseAverage(String courseId) throws EntityNotFoundException, NoGradesRecordedException
-    {
-        courseService.getCourseById(courseId); // check if the course exists
-        return calculateAverage(courseId, false);
+        Grade newGrade = new Grade(studentAm, courseId, gradeValue);
+        gradeDAO.insert(newGrade);
     }
 
     /**
-     * This method is private because it is an internal implementation detail.
-     * Nothing outside GradeService should ever call it directly with a raw boolean flag.
-     * The two public methods (getStudentAverage/getCourseAverage) exist specifically to
-     * give callers a clear, self-explanatory entry point, while the messy shared mechanics
-     * stay hidden behind them. This is the same encapsulation idea as the private
-     * HashMap fields — just applied to behavior instead of data.
+     * Gets the grade average of a student.
      *
-     * @param identifier either the studentAm or the courseId
-     * @param matchByStudent the boolean flag to know if we are comparing am's or id's
-     * @return the float value of the grade average
-     * @throws NoGradesRecordedException if there are no grades recorded to calculate the avg
+     * @param studentAm the student's AM
+     * @return the float value of the student's grade average
+     * @throws EntityNotFoundException if the student doesn't exist
+     * @throws NoGradesRecordedException if the student has no grades recorded
      */
-    private float calculateAverage(String identifier, boolean matchByStudent) throws NoGradesRecordedException
+    public float getStudentAverage(String studentAm) throws EntityNotFoundException, NoGradesRecordedException
     {
-        float sum = 0;
-        int count = 0;
+        studentService.getStudentByAm(studentAm);
 
-        for (Grade grade : gradesByKey.values())
+        if (!gradeDAO.hasAnyGradeForStudent(studentAm))
         {
-            String fieldToCompare = matchByStudent ? grade.getStudentAm() : grade.getCourseId();
-            if (fieldToCompare.equals(identifier))
-            {
-                sum = sum + grade.getGradeValue();
-                count++;
-            }
+            throw new NoGradesRecordedException("Student", studentAm);
         }
 
-        if (count == 0)
-        {
-            throw new NoGradesRecordedException(matchByStudent ? "Student" : "Course", identifier);
-        }
-        else
-        {
-            return sum / count;
-        }
+        return gradeDAO.findStudentAverage(studentAm);
     }
 
+    /**
+     * Gets the grade average of a course.
+     *
+     * @param courseId the course's id
+     * @return the float value of the course's grade average
+     * @throws EntityNotFoundException if the course doesn't exist
+     * @throws NoGradesRecordedException if the course has no grades recorded
+     */
+    public float getCourseAverage(String courseId) throws EntityNotFoundException, NoGradesRecordedException
+    {
+        courseService.getCourseById(courseId);
+
+        if (!gradeDAO.hasAnyGradeForCourse(courseId))
+        {
+            throw new NoGradesRecordedException("Course", courseId);
+        }
+
+        return gradeDAO.findCourseAverage(courseId);
+    }
+
+    /**
+     * Updates the value of a grade.
+     *
+     * @param grade the grade to be updated
+     * @throws EntityNotFoundException if the student or the course or the grade doesn't exist
+     */
     public void updateGrade(Grade grade) throws EntityNotFoundException
     {
-        // key value pair for gradesByKey HashMap = <String = key, Value = gradeValue>
         studentService.getStudentByAm(grade.getStudentAm());
         courseService.getCourseById(grade.getCourseId());
 
-        String key = grade.getStudentAm() + "-" + grade.getCourseId();
-        if (!gradesByKey.containsKey(key))
+        if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
         {
-            throw new EntityNotFoundException("Grade", key);
+            throw new EntityNotFoundException("Grade", grade.getStudentAm() + "-" + grade.getCourseId());
         }
-        gradesByKey.put(key, grade);
+
+        gradeDAO.update(grade);
     }
 
+    /**
+     * Deletes a grade.
+     *
+     * @param grade the grade to be deleted
+     * @throws EntityNotFoundException if the student or the course or the grade doesn't exist
+     */
     public void deleteGrade(Grade grade) throws EntityNotFoundException
     {
         studentService.getStudentByAm(grade.getStudentAm());
         courseService.getCourseById(grade.getCourseId());
 
-        String key = grade.getStudentAm() + "-" + grade.getCourseId();
-        if (!gradesByKey.containsKey(key))
+        if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
         {
-            throw new EntityNotFoundException("Grade", key);
+            throw new EntityNotFoundException("Grade", grade.getStudentAm() + "-" + grade.getCourseId());
         }
-        gradesByKey.remove(key);
+
+        gradeDAO.delete(grade);
     }
 }

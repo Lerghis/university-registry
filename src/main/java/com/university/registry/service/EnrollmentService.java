@@ -157,4 +157,9 @@ public class EnrollmentService
 
         courseService.deleteCourse(courseId);
     }
+
+    public boolean isStudentEnrolled(String studentAm, String courseId)
+    {
+        return enrollmentDAO.isStudentEnrolled(studentAm, courseId);
+    }
 }
