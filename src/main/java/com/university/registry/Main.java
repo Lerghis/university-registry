@@ -176,15 +176,6 @@ public class Main
 
         System.out.println(professorService.getAllProfessors());
 
-//        try
-//        {
-//            professorService.deleteProfessor("1");
-//        }
-//        catch (RegistryException ex)
-//        {
-//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-//        }
-
         System.out.println("\n**************************************************************\n");
 
         try
@@ -199,7 +190,7 @@ public class Main
 
         try
         {
-            Course updatedCourse = new Course("1", "OthercourseTitle", 1);
+            Course updatedCourse = new Course("1", "OtherCourseTitle", 1);
             courseService.updateCourse(updatedCourse);
         }
         catch (RegistryException ex)
@@ -217,15 +208,6 @@ public class Main
         }
 
         System.out.println(courseService.getAllCourses());
-
-//        try
-//        {
-//            courseService.deleteCourse("1");
-//        }
-//        catch (RegistryException ex)
-//        {
-//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-//        }
 
         System.out.println("\n**************************************************************");
         System.out.println("**************************************************************");
@@ -245,17 +227,18 @@ public class Main
             System.out.println("ERROR: wrong exception type: " + ex.getMessage());
         }
 
-        try
-        {
-            enrollmentService.deleteCourseSafely("1");
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
+//        try
+//        {
+//            enrollmentService.deleteCourseSafely("1");
+//        }
+//        catch (RegistryException ex)
+//        {
+//            System.out.println("Correctly caught: " + ex.getMessage());
+//        }
 
         try
         {
+            System.out.println("STUDENT ENROLLMENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             System.out.println(enrollmentService.getCoursesForStudent("1"));
         }
         catch (RegistryException ex)
@@ -298,7 +281,30 @@ public class Main
         try
         {
             Grade grade = new Grade("2", "1", 5.6f);
-            gradeService.deleteGrade(grade);
+            //gradeService.deleteGrade(grade);
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        System.out.println("\n**************************************************************");
+        System.out.println("**************************************************************");
+        System.out.println("**************************************************************\n");
+
+        try
+        {
+            enrollmentService.unenrollStudent("1", "3");
+            //enrollmentService.assignCourseToStudent("1", "1");
+        }
+        catch (RegistryException ex)
+        {
+            System.out.println("Correctly caught: " + ex.getMessage());
+        }
+
+        try
+        {
+            enrollmentService.unassignProfessor("1", "3");
         }
         catch (RegistryException ex)
         {

@@ -4,6 +4,7 @@ import com.university.registry.exception.DataAccessException;
 import com.university.registry.model.Course;
 import com.university.registry.util.DataSourceFactory;
 
+import javax.management.remote.rmi.RMIConnectionImpl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -55,6 +56,23 @@ public class EnrollmentDAO
         }
     }
 
+    /** Removes a row from {@code student_courses}. */
+    public void unenrollStudent(String am, String courseId)
+    {
+        String sql = "DELETE FROM student_courses WHERE student_am = ? AND course_id = ?";
+
+        try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setString(1, am);
+            stmt.setString(2, courseId);
+            stmt.executeUpdate();
+        }
+        catch (SQLException ex)
+        {
+            throw new DataAccessException("Failed to unenroll student", ex);
+        }
+    }
+
     /** Inserts a new row into {@code professor_courses}. */
     public void assignProfessor(String profId, String courseId)
     {
@@ -69,6 +87,23 @@ public class EnrollmentDAO
         catch (SQLException ex)
         {
             throw new DataAccessException("Failed to assign professor", ex);
+        }
+    }
+
+    /** Removes a row from {@code professor_courses}. */
+    public void unassignProfessor(String profId, String courseId)
+    {
+        String sql = "DELETE FROM professor_courses WHERE prof_id = ? AND course_id = ?";
+
+        try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setString(1, profId);
+            stmt.setString(2, courseId);
+            stmt.executeUpdate();
+        }
+        catch (SQLException ex)
+        {
+            throw new DataAccessException("Failed to unassign professor", ex);
         }
     }
 
@@ -292,6 +327,27 @@ public class EnrollmentDAO
         catch (SQLException ex)
         {
             throw new DataAccessException("Couldn't verify if there are any assignments for course", ex);
+        }
+    }
+
+    public boolean hasAnyGradeForEnrollment(String am, String courseId)
+    {
+        String sql = "SELECT COUNT(*) FROM grades WHERE student_am = ? AND course_id = ?";
+
+        try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setString(1, am);
+            stmt.setString(2, courseId);
+
+            try(ResultSet rs = stmt.executeQuery())
+            {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+        }
+        catch (SQLException ex)
+        {
+            throw new DataAccessException("Couldn't verify if there are any grades for enrollment", ex);
         }
     }
 }

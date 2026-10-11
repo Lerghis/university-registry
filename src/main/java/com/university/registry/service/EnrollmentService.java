@@ -55,6 +55,32 @@ public class EnrollmentService
     }
 
     /**
+     * Unenrolls a student from a course.
+     *
+     * @param studentAm the student's AM
+     * @param courseId the course's id
+     * @throws EntityNotFoundException if the student or the course doesn't exist
+     * @throws EntityInUseException if the student is graded for that enrollment
+     */
+    public void unenrollStudent(String studentAm, String courseId) throws EntityNotFoundException, EntityInUseException
+    {
+        studentService.getStudentByAm(studentAm);
+        courseService.getCourseById(courseId);
+
+        if (!enrollmentDAO.isStudentEnrolled(studentAm, courseId))
+        {
+            throw new EntityNotFoundException("Enrollment", studentAm + "-" + courseId);
+        }
+
+        if (enrollmentDAO.hasAnyGradeForEnrollment(studentAm, courseId))
+        {
+            throw new EntityInUseException("Enrollment", studentAm + "-" + courseId);
+        }
+
+        enrollmentDAO.unenrollStudent(studentAm, courseId);
+    }
+
+    /**
      * Assigns a professor in a course.
      *
      * @param profId the professor's id
@@ -73,6 +99,26 @@ public class EnrollmentService
         }
 
         enrollmentDAO.assignProfessor(profId, courseId);
+    }
+
+    /**
+     * Unassigns a professor from a course.
+     *
+     * @param profId the professor's id
+     * @param courseId  the course's id
+     * @throws EntityNotFoundException  if the professor or the course or the assignment doesn't exist
+     */
+    public void unassignProfessor(String profId, String courseId) throws EntityNotFoundException
+    {
+        professorService.getProfById(profId);
+        courseService.getCourseById(courseId);
+
+        if (!enrollmentDAO.isProfessorAssigned(profId, courseId))
+        {
+            throw new EntityNotFoundException("Assignment", profId + "-" + courseId);
+        }
+
+        enrollmentDAO.unassignProfessor(profId, courseId);
     }
 
     /**
