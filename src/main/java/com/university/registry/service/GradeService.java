@@ -1,6 +1,5 @@
 package com.university.registry.service;
 
-
 import com.university.registry.dao.GradeDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
@@ -9,19 +8,17 @@ import com.university.registry.exception.NoGradesRecordedException;
 import com.university.registry.model.Grade;
 
 /**
- * Business-logic layer for Grade objects.
- * <p>
- * Decides what the stored data means (a missing row becomes an
- * {@link EntityNotFoundException}, an existing row on insert becomes a
- * {@link DuplicateEntityException}), an invalid grade value becomes a
- * {@link InvalidGradeException}, a missing row in grade value becomes a
- * {@link NoGradesRecordedException} and delegates all actual storage to
- * {@link GradeDAO}. Holds no data itself.
+ /**
+ * Business-logic layer for grades. Verifies that the student and course
+ * exist and that the student is enrolled before recording a grade,
+ * rejects duplicates, and refuses to compute an average when no grades exist.
+ * Delegates all storage to {@link GradeDAO}.
  * <p>
  * All these exceptions are checked, so methods declare them with {@code throws}.
  * Database failures surface separately as the unchecked
  * {@code DataAccessException}.
  */
+
 public class GradeService
 {
     private final StudentService studentService;
@@ -38,18 +35,19 @@ public class GradeService
     }
 
     /**
-     * Records a grade in a enrolled student.
+     * Records a grade in an enrolled student.
      *
      * @param studentAm the student's AM
      * @param courseId the course's id
      * @param gradeValue the value of the grade
-     * @throws EntityNotFoundException if the student or the course doesn't exist
+     * @throws EntityNotFoundException if the student or the course or the enrollment doesn't exist
      * @throws DuplicateEntityException if a grade has already been recorded
      * @throws InvalidGradeException if the grade to be recorded has an invalid value
      */
     public void recordGrade(String studentAm, String courseId, float gradeValue) throws EntityNotFoundException, DuplicateEntityException, InvalidGradeException
     {
-        studentService.getStudentByAm(studentAm); // This call is essentially an Abstraction. We do the call without knowing that the class calls the StudenDAO class in order the check for the student's existence
+        Grade newGrade = new Grade(studentAm, courseId, gradeValue); // Construct first to reject an invalid grade without touching the database (fail fast)
+        studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
 
         if (!enrollmentService.isStudentEnrolled(studentAm, courseId))
@@ -62,7 +60,6 @@ public class GradeService
             throw new DuplicateEntityException("Grade", studentAm + "-" + courseId);
         }
 
-        Grade newGrade = new Grade(studentAm, courseId, gradeValue);
         gradeDAO.insert(newGrade);
     }
 

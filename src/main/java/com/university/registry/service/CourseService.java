@@ -36,10 +36,9 @@ public class CourseService
     }
 
     /**
-     * Adds a new Course to the database by calling {@link CourseDAO}'s {@code insert()} method
+     * Adds a new Course to the database by calling {@link CourseDAO}'s {@code insert()} method.
      *
      * @param course the course to be added assumed already validated before being passed here
-     *
      * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (courseId)
      */
     public void addCourse(Course course) throws DuplicateEntityException
@@ -53,12 +52,10 @@ public class CourseService
     }
 
     /**
-     * Looks up for a specific Course by its id by calling {@link CourseDAO}'s {@code findById()} method
+     * Looks up for a specific Course by its id by calling {@link CourseDAO}'s {@code findById()} method.
      *
      * @param id the Course's id (primary key)
-     *
-     * @return the matching {@link Course}
-     *
+     * @return the matching course
      * @throws EntityNotFoundException if the Course isn't found in the database
      */
     public Course getCourseById(String id) throws EntityNotFoundException
@@ -74,10 +71,9 @@ public class CourseService
 
     /**
      * Updates the {@link Course} that's being passed as a parameter by calling {@link CourseDAO}'s
-     * {@code update()} method, after first verifying its existence with {@code getCourseById()}
+     * {@code update()} method, after first verifying its existence with {@code getCourseById()}.
      *
      * @param updatedCourse the {@link Course} to be updated
-     *
      * @throws EntityNotFoundException if the Course isn't found in the database
      */
     public void updateCourse(Course updatedCourse) throws EntityNotFoundException
@@ -88,10 +84,9 @@ public class CourseService
 
     /**
      * Deletes the {@link Course} matching the given id by calling {@link CourseDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getCourseById()}
+     * {@code delete()} method, after first verifying its existence with {@code getCourseById()}.
      *
      * @param id the identifier of the Course that's going to be deleted
-     *
      * @throws EntityNotFoundException if the Course isn't found in the database
      */
     public void deleteCourse(String id) throws EntityNotFoundException
@@ -102,8 +97,7 @@ public class CourseService
 
     /**
      * Calls {@link CourseDAO}'s {@code findAll()} method to get the list of all the Course
-     * objects stored in the database
-     *
+     * objects stored in the database.
      * @return a collection holding all the courses
      */
     public Collection<Course> getAllCourses()

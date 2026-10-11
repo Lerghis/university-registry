@@ -37,9 +37,8 @@ public class StudentService
     /**
      * Adds a new Student to the database by calling {@link StudentDAO}'s {@code insert()} method.
      *
-     * @param student the student to be added assumed already validated before being passed here.
-     *
-     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (am).
+     * @param student the student to be added assumed already validated before being passed here
+     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (am)
      */
     public void addStudent(Student student) throws DuplicateEntityException
     {
@@ -52,12 +51,10 @@ public class StudentService
     }
 
     /**
-     * Looks up for a specific Student by its am by calling {@link StudentDAO}'s {@code findByAm()} method
+     * Looks up for a specific Student by its am by calling {@link StudentDAO}'s {@code findByAm()} method.
      *
      * @param am the Student's am (primary key)
-     *
-     * @return the matching {@link Student}
-     *
+     * @return the matching Student
      * @throws EntityNotFoundException if the Student isn't found in the database
      */
     public Student getStudentByAm(String am) throws EntityNotFoundException
@@ -72,11 +69,10 @@ public class StudentService
     }
 
     /**
-     * Updates the {@link Student} that's being passed as a parameter by calling {@link StudentDAO}'s
-     * {@code update()} method, after first verifying its existence with {@code getStudentByAm()}
+     * Updates the Student that's being passed as a parameter by calling {@link StudentDAO}'s
+     * {@code update()} method, after first verifying its existence with {@code getStudentByAm()}.
      *
-     * @param updatedStudent the {@link Student} to be updated
-     *
+     * @param updatedStudent the Student to be updated
      * @throws EntityNotFoundException if the Student isn't found in the database
      */
     public void updateStudent(Student updatedStudent) throws EntityNotFoundException
@@ -86,11 +82,10 @@ public class StudentService
     }
 
     /**
-     * Deletes the {@link Student} matching the given am by calling {@link StudentDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getStudentByAm()}
+     * Deletes the Student matching the given am by calling {@link StudentDAO}'s
+     * {@code delete()} method, after first verifying its existence with {@code getStudentByAm()}.
      *
      * @param am the identifier of the Student that's going to be deleted
-     *
      * @throws EntityNotFoundException if the Student isn't found in the database
      */
     public void deleteStudent(String am) throws EntityNotFoundException
@@ -101,7 +96,7 @@ public class StudentService
 
     /**
      * Calls {@link StudentDAO}'s {@code findAll()} method to get the list of all the Student
-     * objects stored in the database
+     * objects stored in the database.
      *
      * @return a collection holding all the students
      */

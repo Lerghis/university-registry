@@ -1,11 +1,9 @@
 package com.university.registry.service;
 
 import com.university.registry.dao.ProfessorDAO;
-import com.university.registry.dao.StudentDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Professor;
-import com.university.registry.model.Student;
 
 import java.util.Collection;
 
@@ -40,9 +38,8 @@ public class ProfessorService
     /**
      * Adds a new Professor to the database by calling {@link ProfessorDAO}'s {@code insert()} method.
      *
-     * @param professor the professor to be added assumed already validated before being passed here.
-     *
-     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (profId).
+     * @param professor the professor to be added assumed already validated before being passed here
+     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (profId)
      */
     public void addProfessor(Professor professor) throws DuplicateEntityException
     {
@@ -55,12 +52,10 @@ public class ProfessorService
     }
 
     /**
-     * Looks up for a specific Professor by its id by calling {@link ProfessorDAO}'s {@code findById()} method
+     * Looks up for a specific Professor by its id by calling {@link ProfessorDAO}'s {@code findById()} method.
      *
      * @param id the Professor's id (primary key)
-     *
-     * @return the matching {@link Professor}
-     *
+     * @return the matching Professor
      * @throws EntityNotFoundException if the Professor isn't found in the database
      */
     public Professor getProfById(String id) throws EntityNotFoundException
@@ -75,11 +70,10 @@ public class ProfessorService
     }
 
     /**
-     * Updates the {@link Professor} that's being passed as a parameter by calling {@link ProfessorDAO}'s
-     * {@code update()} method, after first verifying its existence with {@code getProfById()}
+     * Updates the Professor that's being passed as a parameter by calling {@link ProfessorDAO}'s
+     * {@code update()} method, after first verifying its existence with {@code getProfById()}.
      *
-     * @param updatedProfessor the {@link Professor} to be updated
-     *
+     * @param updatedProfessor the Professor to be updated
      * @throws EntityNotFoundException if the Professor isn't found in the database
      */
     public void updateProfessor(Professor updatedProfessor) throws EntityNotFoundException
@@ -89,11 +83,10 @@ public class ProfessorService
     }
 
     /**
-     * Deletes the {@link Professor} matching the given id by calling {@link ProfessorDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getProfById()}
+     * Deletes the Professor matching the given id by calling {@link ProfessorDAO}'s
+     * {@code delete()} method, after first verifying its existence with {@code getProfById()}.
      *
      * @param id the identifier of the Professor that's going to be deleted
-     *
      * @throws EntityNotFoundException if the Professor isn't found in the database
      */
     public void deleteProfessor(String id) throws EntityNotFoundException
@@ -104,7 +97,7 @@ public class ProfessorService
 
     /**
      * Calls {@link ProfessorDAO}'s {@code findAll()} method to get the list of all the Professor
-     * objects stored in the database
+     * objects stored in the database.
      *
      * @return a collection holding all the professors
      */
