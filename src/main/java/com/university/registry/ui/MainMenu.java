@@ -7,13 +7,15 @@ public class MainMenu extends BaseMenu
     private final StudentMenu studentMenu;
     private final ProfessorMenu professorMenu;
     private final CourseMenu courseMenu;
+    private final EnrollmentMenu enrollmentMenu;
 
-    public MainMenu(ConsoleInput input, StudentMenu studentMenu, ProfessorMenu professorMenu, CourseMenu courseMenu)
+    public MainMenu(ConsoleInput input, StudentMenu studentMenu, ProfessorMenu professorMenu, CourseMenu courseMenu, EnrollmentMenu enrollmentMenu)
     {
         super(input);
         this.studentMenu = studentMenu;
         this.professorMenu = professorMenu;
         this.courseMenu = courseMenu;
+        this.enrollmentMenu = enrollmentMenu;
     }
 
     @Override
@@ -39,6 +41,7 @@ public class MainMenu extends BaseMenu
             case 1 -> studentMenu.run();
             case 2 -> professorMenu.run();
             case 3 -> courseMenu.run();
+            case 4 -> enrollmentMenu.run();
             default -> System.out.println("Μη έγκυρη επιλογή.");
         }
     }

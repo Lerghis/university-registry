@@ -48,6 +48,8 @@ public class Main
     private final StudentMenu studentMenu;
     private final ProfessorMenu professorMenu;
     private final CourseMenu courseMenu;
+    private final EnrollmentMenu enrollmentMenu;
+
     private final MainMenu mainMenu;
 
     public Main(ConsoleInput consoleInput)
@@ -69,8 +71,9 @@ public class Main
         this.consoleInput = consoleInput;
         this.studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
         this.professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
-        this.courseMenu = new CourseMenu(consoleInput, courseService);
-        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu);
+        this.courseMenu = new CourseMenu(consoleInput, courseService, enrollmentService);
+        this.enrollmentMenu = new EnrollmentMenu(consoleInput, enrollmentService);
+        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu, enrollmentMenu);
 
         // keyboard = new Scanner(System.in);
     }

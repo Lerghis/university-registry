@@ -1,9 +1,6 @@
 package com.university.registry.ui;
 
-import com.university.registry.exception.EntityInUseException;
-import com.university.registry.exception.EntityNotFoundException;
-import com.university.registry.exception.InvalidSemesterException;
-import com.university.registry.exception.RegistryException;
+import com.university.registry.exception.*;
 import com.university.registry.model.Student;
 import com.university.registry.service.EnrollmentService;
 import com.university.registry.service.StudentService;
@@ -37,7 +34,7 @@ public class StudentMenu extends BaseMenu
     }
 
     @Override
-    protected void handle(int choice) throws RegistryException
+    protected void handle(int choice) throws DuplicateEntityException, InvalidSemesterException, EntityNotFoundException, EntityInUseException
     {
         switch (choice)
         {
@@ -50,7 +47,7 @@ public class StudentMenu extends BaseMenu
         }
     }
 
-    private void addStudent() throws RegistryException
+    private void addStudent() throws InvalidSemesterException, DuplicateEntityException
     {
         String am = input.readString("Αριθμός μητρώου: ");
         String name = input.readString("Ονοματεπώνυμο: ");
@@ -102,7 +99,7 @@ public class StudentMenu extends BaseMenu
         System.out.println("Τα στοιχεία του φοιτητή ενημερώθηκαν.");
     }
 
-    private void deleteStudent() throws EntityInUseException, EntityNotFoundException
+    private void deleteStudent() throws EntityNotFoundException, EntityInUseException
     {
         String am = input.readString("Εισάγετε τον αριθμό μητρώου του φοιτητή προς διαγραφή: ");
         studentService.getStudentByAm(am);

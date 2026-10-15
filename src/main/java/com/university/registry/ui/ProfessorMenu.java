@@ -1,8 +1,8 @@
 package com.university.registry.ui;
 
 import com.university.registry.exception.DuplicateEntityException;
+import com.university.registry.exception.EntityInUseException;
 import com.university.registry.exception.EntityNotFoundException;
-import com.university.registry.exception.RegistryException;
 import com.university.registry.model.Professor;
 import com.university.registry.service.EnrollmentService;
 import com.university.registry.service.ProfessorService;
@@ -13,7 +13,6 @@ public class ProfessorMenu extends BaseMenu
 {
     private final ProfessorService professorService;
     private final EnrollmentService enrollmentService;
-
 
     public ProfessorMenu(ConsoleInput input, ProfessorService professorService, EnrollmentService enrollmentService)
     {
@@ -37,7 +36,7 @@ public class ProfessorMenu extends BaseMenu
     }
 
     @Override
-    protected void handle(int choice) throws RegistryException
+    protected void handle(int choice) throws DuplicateEntityException, EntityNotFoundException, EntityInUseException
     {
         switch (choice)
         {
@@ -76,7 +75,7 @@ public class ProfessorMenu extends BaseMenu
 
         if (list.isEmpty())
         {
-            System.out.println("Δεν υπάρχουν καθηγητές");
+            System.out.println("Δεν υπάρχουν καθηγητές.");
         }
         else
         {
@@ -101,14 +100,14 @@ public class ProfessorMenu extends BaseMenu
         System.out.println("Ο καθηγητής ενημερώθηκε επιτυχώς.");
     }
 
-    private void deleteProfessor() throws EntityNotFoundException
+    private void deleteProfessor() throws EntityNotFoundException, EntityInUseException
     {
         String profId = input.readString("Εισάγετε τον κωδικό του καθηγητή προς διαγραφή: ");
         professorService.getProfById(profId);
 
         if (input.confirm("Διαγραφή του καθηγητή: " + profId + "; (ν/ο) "))
         {
-            professorService.deleteProfessor(profId);
+            enrollmentService.deleteProfessorSafely(profId);
             System.out.println("Ο καθηγητής διαγράφηκε επιτυχώς.");
         }
         else

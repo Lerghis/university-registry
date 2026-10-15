@@ -41,7 +41,7 @@ public class EnrollmentService
      * @throws EntityNotFoundException  if the student or the course doesn't exist
      * @throws DuplicateEntityException if the student is already enrolled in it
      */
-    public void assignCourseToStudent(String studentAm, String courseId) throws EntityNotFoundException, DuplicateEntityException
+    public void enrollStudentToCourse(String studentAm, String courseId) throws EntityNotFoundException, DuplicateEntityException
     {
         studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
@@ -179,7 +179,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.hasAnyAssignmentForProfessor(profId))
         {
-            throw new EntityInUseException("Καιηγητής", profId);
+            throw new EntityInUseException("Καθηγητής", profId);
         }
 
         professorService.deleteProfessor(profId);
