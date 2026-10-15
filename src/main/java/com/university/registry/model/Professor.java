@@ -35,12 +35,12 @@ public class Professor extends Person
     @Override
     public String toString()
     {
-        return "Professor{" +
-                "profId='" + profId + '\'' +
-                ", specialty='" + specialty + '\'' +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
+        return "Καθηγητής {" +
+                "κωδικός καθηγητή='" + profId + '\'' +
+                ", ειδικότητα='" + specialty + '\'' +
+                ", ονοματεπώνυμο='" + name + '\'' +
+                ", Email='" + email + '\'' +
+                ", τηλέφωνο='" + phone + '\'' +
                 '}';
     }
 }

@@ -52,12 +52,12 @@ public class GradeService
 
         if (!enrollmentService.isStudentEnrolled(studentAm, courseId))
         {
-            throw new EntityNotFoundException("Enrollment", studentAm + "-" + courseId);
+            throw new EntityNotFoundException("Εγγραφή", studentAm + "-" + courseId);
         }
 
         if (gradeDAO.exists(studentAm, courseId))
         {
-            throw new DuplicateEntityException("Grade", studentAm + "-" + courseId);
+            throw new DuplicateEntityException("Βαθμός", studentAm + "-" + courseId);
         }
 
         gradeDAO.insert(newGrade);
@@ -77,7 +77,7 @@ public class GradeService
 
         if (!gradeDAO.hasAnyGradeForStudent(studentAm))
         {
-            throw new NoGradesRecordedException("Student", studentAm);
+            throw new NoGradesRecordedException("Φοιτητής", studentAm);
         }
 
         return gradeDAO.findStudentAverage(studentAm);
@@ -97,7 +97,7 @@ public class GradeService
 
         if (!gradeDAO.hasAnyGradeForCourse(courseId))
         {
-            throw new NoGradesRecordedException("Course", courseId);
+            throw new NoGradesRecordedException("Μάθημα", courseId);
         }
 
         return gradeDAO.findCourseAverage(courseId);
@@ -116,7 +116,7 @@ public class GradeService
 
         if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
         {
-            throw new EntityNotFoundException("Grade", grade.getStudentAm() + "-" + grade.getCourseId());
+            throw new EntityNotFoundException("Βαθμός", grade.getStudentAm() + "-" + grade.getCourseId());
         }
 
         gradeDAO.update(grade);
@@ -135,7 +135,7 @@ public class GradeService
 
         if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
         {
-            throw new EntityNotFoundException("Grade", grade.getStudentAm() + "-" + grade.getCourseId());
+            throw new EntityNotFoundException("Βαθμός", grade.getStudentAm() + "-" + grade.getCourseId());
         }
 
         gradeDAO.delete(grade);

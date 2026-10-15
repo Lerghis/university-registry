@@ -44,7 +44,7 @@ public class StudentService
     {
         if (studentDAO.findByAm(student.getAm()) != null)
         {
-            throw new DuplicateEntityException("Student", student.getAm());
+            throw new DuplicateEntityException("Φοιτητής", student.getAm());
         }
 
         studentDAO.insert(student);
@@ -62,7 +62,7 @@ public class StudentService
         Student student = studentDAO.findByAm(am);
         if (student == null)
         {
-            throw new EntityNotFoundException("Student", am);
+            throw new EntityNotFoundException("Φοιτητής", am);
         }
 
         return student;

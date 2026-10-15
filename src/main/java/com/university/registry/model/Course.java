@@ -52,10 +52,10 @@ public class Course
     @Override
     public String toString()
     {
-        return "Course{" +
-                "courseId='" + courseId + '\'' +
-                ", courseTitle='" + courseTitle + '\'' +
-                ", courseSemester=" + courseSemester +
+        return "Μάθημα {" +
+                "κωδικός μαθήματος='" + courseId + '\'' +
+                ", τίτλος μαθήματος='" + courseTitle + '\'' +
+                ", εξάμηνο μαθήματος=" + courseSemester +
                 '}';
     }
 }

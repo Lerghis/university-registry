@@ -16,6 +16,9 @@ import com.university.registry.model.Grade;
 import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
+import com.university.registry.ui.ConsoleInput;
+import com.university.registry.ui.MainMenu;
+import com.university.registry.ui.StudentMenu;
 import com.university.registry.util.DataSourceFactory;
 
 import java.sql.Connection;
@@ -43,8 +46,11 @@ public class Main
     private final GradeDAO gradeDAO;
 
     Scanner keyboard;
+    private final ConsoleInput consoleInput;
+    private final StudentMenu studentMenu;
+    private final MainMenu mainMenu;
 
-    public Main()
+    public Main(ConsoleInput consoleInput)
     {
         this.dataSourceFactory = new DataSourceFactory();
 
@@ -60,7 +66,11 @@ public class Main
         this.enrollmentService = new EnrollmentService(studentService, professorService, courseService, enrollmentDAO);
         this.gradeService = new GradeService(studentService, courseService, enrollmentService, gradeDAO);
 
-        keyboard = new Scanner(System.in);
+        this.consoleInput = consoleInput;
+        this.studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
+        this.mainMenu = new MainMenu(consoleInput, studentMenu);
+
+        // keyboard = new Scanner(System.in);
     }
 
     /**
@@ -103,213 +113,7 @@ public class Main
         // it into this catch block, which itself would be a useful signal
         // that our validation logic has a bug.
 
-        try
-        {
-            Student student = new Student("2", 1, "testStudent2", "testEmail2", "658386746753");
-            studentService.addStudent(student);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-
-        try
-        {
-            Student updatedStudent = new Student("1", 1, "UpdatedTestStudent", "testEmail1", "65836758493");
-            studentService.updateStudent(updatedStudent);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        try
-        {
-            System.out.println(studentService.getStudentByAm("1"));
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-        System.out.println(studentService.getAllStudents());
-
-//        try
-//        {
-//            studentService.deleteStudent("1");
-//        }
-//        catch (RegistryException ex)
-//        {
-//            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-//        }
-
-        System.out.println("\n**************************************************************\n");
-
-        try
-        {
-            Professor professor = new Professor("1", "something", "someName", "someEmail", "1234567899");
-            professorService.addProfessor(professor);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        try
-        {
-            Professor updatedProfessor = new Professor("1", "somethingElse", "someName", "someEmail", "1234567899");
-            professorService.updateProfessor(updatedProfessor);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        try
-        {
-            System.out.println(professorService.getProfById("1"));
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        System.out.println(professorService.getAllProfessors());
-
-        System.out.println("\n**************************************************************\n");
-
-        try
-        {
-            Course course = new Course("1", "courseTitle1", 1);
-            courseService.addCourse(course);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        try
-        {
-            Course updatedCourse = new Course("1", "OtherCourseTitle", 1);
-            courseService.updateCourse(updatedCourse);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        try
-        {
-            System.out.println(courseService.getCourseById("1"));
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Unexpected failure in the happy path: " + ex.getMessage());
-        }
-
-        System.out.println(courseService.getAllCourses());
-
-        System.out.println("\n**************************************************************");
-        System.out.println("**************************************************************");
-        System.out.println("**************************************************************\n");
-
-        try
-        {
-            enrollmentService.assignCourseToStudent("1", "3");
-            System.out.println("ERROR: expected a DuplicateEntityException, but none was thrown!");
-        }
-        catch (DuplicateEntityException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-        catch (EntityNotFoundException ex)
-        {
-            System.out.println("ERROR: wrong exception type: " + ex.getMessage());
-        }
-
-//        try
-//        {
-//            enrollmentService.deleteCourseSafely("1");
-//        }
-//        catch (RegistryException ex)
-//        {
-//            System.out.println("Correctly caught: " + ex.getMessage());
-//        }
-
-        try
-        {
-            System.out.println("STUDENT ENROLLMENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println(enrollmentService.getCoursesForStudent("1"));
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        System.out.println("\n**************************************************************");
-        System.out.println("**************************************************************");
-        System.out.println("**************************************************************\n");
-
-        try
-        {
-            gradeService.recordGrade("1", "3", 0);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        try
-        {
-            Grade grade = new Grade("2", "2", 7);
-            gradeService.updateGrade(grade);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        try
-        {
-            System.out.println(gradeService.getStudentAverage("1"));
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        try
-        {
-            Grade grade = new Grade("2", "1", 5.6f);
-            //gradeService.deleteGrade(grade);
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        System.out.println("\n**************************************************************");
-        System.out.println("**************************************************************");
-        System.out.println("**************************************************************\n");
-
-        try
-        {
-            enrollmentService.unenrollStudent("1", "3");
-            //enrollmentService.assignCourseToStudent("1", "1");
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
-
-        try
-        {
-            enrollmentService.unassignProfessor("1", "3");
-        }
-        catch (RegistryException ex)
-        {
-            System.out.println("Correctly caught: " + ex.getMessage());
-        }
+        mainMenu.run();
     }
 
     private void closeDataSource()
@@ -319,7 +123,7 @@ public class Main
     public static void main(String[] args)
     {
         System.out.println("University Registry System - project skeleton is wired up correctly.");
-        Main app = new Main();
+        Main app = new Main(new ConsoleInput());
 
         try
         {

@@ -48,7 +48,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.isStudentEnrolled(studentAm, courseId))
         {
-            throw new DuplicateEntityException("Enrollment", studentAm + "-" + courseId);
+            throw new DuplicateEntityException("Εγγραφή", studentAm + "-" + courseId);
         }
 
         enrollmentDAO.enrollStudent(studentAm, courseId);
@@ -69,12 +69,12 @@ public class EnrollmentService
 
         if (!enrollmentDAO.isStudentEnrolled(studentAm, courseId))
         {
-            throw new EntityNotFoundException("Enrollment", studentAm + "-" + courseId);
+            throw new EntityNotFoundException("Εγγραφή", studentAm + "-" + courseId);
         }
 
         if (enrollmentDAO.hasAnyGradeForEnrollment(studentAm, courseId))
         {
-            throw new EntityInUseException("Enrollment", studentAm + "-" + courseId);
+            throw new EntityInUseException("Εγγραφή", studentAm + "-" + courseId);
         }
 
         enrollmentDAO.unenrollStudent(studentAm, courseId);
@@ -95,7 +95,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.isProfessorAssigned(profId, courseId))
         {
-            throw new DuplicateEntityException("Assignment", profId + "-" + courseId);
+            throw new DuplicateEntityException("Ανάθεση", profId + "-" + courseId);
         }
 
         enrollmentDAO.assignProfessor(profId, courseId);
@@ -115,7 +115,7 @@ public class EnrollmentService
 
         if (!enrollmentDAO.isProfessorAssigned(profId, courseId))
         {
-            throw new EntityNotFoundException("Assignment", profId + "-" + courseId);
+            throw new EntityNotFoundException("Ανάθεση", profId + "-" + courseId);
         }
 
         enrollmentDAO.unassignProfessor(profId, courseId);
@@ -160,7 +160,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.hasAnyEnrollmentForStudent(studentAm))
         {
-            throw new EntityInUseException("Student", studentAm);
+            throw new EntityInUseException("Φοιτητής", studentAm);
         }
 
         studentService.deleteStudent(studentAm);
@@ -179,7 +179,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.hasAnyAssignmentForProfessor(profId))
         {
-            throw new EntityInUseException("Professor", profId);
+            throw new EntityInUseException("Καιηγητής", profId);
         }
 
         professorService.deleteProfessor(profId);
@@ -198,7 +198,7 @@ public class EnrollmentService
 
         if (enrollmentDAO.hasAnyEnrollmentForCourse(courseId) || enrollmentDAO.hasAnyAssignmentForCourse(courseId))
         {
-            throw new EntityInUseException("Course", courseId);
+            throw new EntityInUseException("Μάθημα", courseId);
         }
 
         courseService.deleteCourse(courseId);

@@ -45,7 +45,7 @@ public class CourseService
     {
         if (courseDAO.findById(course.getCourseId()) != null)
         {
-            throw new DuplicateEntityException("Course", course.getCourseId());
+            throw new DuplicateEntityException("Μάθημα", course.getCourseId());
         }
 
         courseDAO.insert(course);
@@ -63,7 +63,7 @@ public class CourseService
         Course course = courseDAO.findById(id);
         if (course == null)
         {
-            throw new EntityNotFoundException("Course", id);
+            throw new EntityNotFoundException("Μάθημα", id);
         }
 
         return course;

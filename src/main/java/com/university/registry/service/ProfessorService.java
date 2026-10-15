@@ -45,7 +45,7 @@ public class ProfessorService
     {
         if (professorDAO.findById(professor.getProfId()) != null)
         {
-            throw new DuplicateEntityException("Professor", professor.getProfId());
+            throw new DuplicateEntityException("Καθηγητής", professor.getProfId());
         }
 
         professorDAO.insert(professor);
@@ -63,7 +63,7 @@ public class ProfessorService
         Professor professor = professorDAO.findById(id);
         if (professor == null)
         {
-            throw new EntityNotFoundException("Professor", id);
+            throw new EntityNotFoundException("Καθηγητής", id);
         }
 
         return professor;

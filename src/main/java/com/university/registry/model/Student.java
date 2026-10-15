@@ -42,12 +42,12 @@ public class Student extends Person
     @Override
     public String toString()
     {
-        return "Student{" +
-                "am='" + am + '\'' +
-                ", semester=" + semester +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
+        return "Φοιτητής {" +
+                "ΑΜ='" + am + '\'' +
+                ", εξάμηνο=" + semester +
+                ", ονοματεπώνυμο='" + name + '\'' +
+                ", Email='" + email + '\'' +
+                ", τηλέφωνο='" + phone + '\'' +
                 '}';
     }
 }
