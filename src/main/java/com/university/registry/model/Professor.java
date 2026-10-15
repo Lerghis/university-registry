@@ -36,11 +36,11 @@ public class Professor extends Person
     public String toString()
     {
         return "Καθηγητής {" +
-                "κωδικός καθηγητή='" + profId + '\'' +
-                ", ειδικότητα='" + specialty + '\'' +
-                ", ονοματεπώνυμο='" + name + '\'' +
-                ", Email='" + email + '\'' +
-                ", τηλέφωνο='" + phone + '\'' +
+                "κωδικός καθηγητή= '" + profId + '\'' +
+                ", ειδικότητα= '" + specialty + '\'' +
+                ", ονοματεπώνυμο= '" + name + '\'' +
+                ", Email= '" + email + '\'' +
+                ", τηλέφωνο= '" + phone + '\'' +
                 '}';
     }
 }

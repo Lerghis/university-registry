@@ -43,11 +43,11 @@ public class Student extends Person
     public String toString()
     {
         return "Φοιτητής {" +
-                "ΑΜ='" + am + '\'' +
-                ", εξάμηνο=" + semester +
-                ", ονοματεπώνυμο='" + name + '\'' +
-                ", Email='" + email + '\'' +
-                ", τηλέφωνο='" + phone + '\'' +
+                "ΑΜ= '" + am + '\'' +
+                ", εξάμηνο= " + semester +
+                ", ονοματεπώνυμο= '" + name + '\'' +
+                ", Email= '" + email + '\'' +
+                ", τηλέφωνο= '" + phone + '\'' +
                 '}';
     }
 }

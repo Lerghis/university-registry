@@ -16,10 +16,7 @@ import com.university.registry.model.Grade;
 import com.university.registry.model.Professor;
 import com.university.registry.model.Student;
 import com.university.registry.service.*;
-import com.university.registry.ui.ConsoleInput;
-import com.university.registry.ui.MainMenu;
-import com.university.registry.ui.ProfessorMenu;
-import com.university.registry.ui.StudentMenu;
+import com.university.registry.ui.*;
 import com.university.registry.util.DataSourceFactory;
 
 import java.sql.Connection;
@@ -50,6 +47,7 @@ public class Main
     private final ConsoleInput consoleInput;
     private final StudentMenu studentMenu;
     private final ProfessorMenu professorMenu;
+    private final CourseMenu courseMenu;
     private final MainMenu mainMenu;
 
     public Main(ConsoleInput consoleInput)
@@ -71,7 +69,8 @@ public class Main
         this.consoleInput = consoleInput;
         this.studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
         this.professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
-        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu);
+        this.courseMenu = new CourseMenu(consoleInput, courseService);
+        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu);
 
         // keyboard = new Scanner(System.in);
     }

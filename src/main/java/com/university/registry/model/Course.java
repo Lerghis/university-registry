@@ -53,9 +53,9 @@ public class Course
     public String toString()
     {
         return "Μάθημα {" +
-                "κωδικός μαθήματος='" + courseId + '\'' +
-                ", τίτλος μαθήματος='" + courseTitle + '\'' +
-                ", εξάμηνο μαθήματος=" + courseSemester +
+                "κωδικός μαθήματος= '" + courseId + '\'' +
+                ", τίτλος μαθήματος= '" + courseTitle + '\'' +
+                ", εξάμηνο μαθήματος= " + courseSemester +
                 '}';
     }
 }
