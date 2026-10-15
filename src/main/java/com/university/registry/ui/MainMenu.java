@@ -5,11 +5,13 @@ import com.university.registry.exception.RegistryException;
 public class MainMenu extends BaseMenu
 {
     private final StudentMenu studentMenu;
+    private final ProfessorMenu professorMenu;
 
-    public MainMenu(ConsoleInput input, StudentMenu studentMenu)
+    public MainMenu(ConsoleInput input, StudentMenu studentMenu, ProfessorMenu professorMenu)
     {
         super(input);
         this.studentMenu = studentMenu;
+        this.professorMenu = professorMenu;
     }
 
     @Override
@@ -33,6 +35,7 @@ public class MainMenu extends BaseMenu
         switch (choice)
         {
             case 1 -> studentMenu.run();
+            case 2 -> professorMenu.run();
             default -> System.out.println("Μη έγκυρη επιλογή.");
         }
     }

@@ -18,6 +18,7 @@ import com.university.registry.model.Student;
 import com.university.registry.service.*;
 import com.university.registry.ui.ConsoleInput;
 import com.university.registry.ui.MainMenu;
+import com.university.registry.ui.ProfessorMenu;
 import com.university.registry.ui.StudentMenu;
 import com.university.registry.util.DataSourceFactory;
 
@@ -48,6 +49,7 @@ public class Main
     Scanner keyboard;
     private final ConsoleInput consoleInput;
     private final StudentMenu studentMenu;
+    private final ProfessorMenu professorMenu;
     private final MainMenu mainMenu;
 
     public Main(ConsoleInput consoleInput)
@@ -68,7 +70,8 @@ public class Main
 
         this.consoleInput = consoleInput;
         this.studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
-        this.mainMenu = new MainMenu(consoleInput, studentMenu);
+        this.professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
+        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu);
 
         // keyboard = new Scanner(System.in);
     }
