@@ -100,7 +100,6 @@ public class CourseMenu extends BaseMenu
     private void deleteCourse() throws EntityNotFoundException, EntityInUseException
     {
         String courseId = input.readString("Εισάγετε τον κωδικό του μαθήματος προς διαγραφή: ");
-        courseService.getCourseById(courseId);
 
         if (input.confirm("Διαγραφή του μαθήματος: " + courseId + "; (n/o) "))
         {

@@ -204,6 +204,14 @@ public class EnrollmentService
         courseService.deleteCourse(courseId);
     }
 
+    /**
+     * Checks if a Student is enrolled in a specific Course by calling  {@link EnrollmentDAO}'s
+     * {@link isStudentEnrolled} method
+     *
+     * @param studentAm the Student's am
+     * @param courseId the Course's id
+     * @return true if the Student is enrolled, false if it isn't
+     */
     public boolean isStudentEnrolled(String studentAm, String courseId)
     {
         return enrollmentDAO.isStudentEnrolled(studentAm, courseId);

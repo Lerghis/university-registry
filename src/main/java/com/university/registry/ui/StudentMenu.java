@@ -102,7 +102,6 @@ public class StudentMenu extends BaseMenu
     private void deleteStudent() throws EntityNotFoundException, EntityInUseException
     {
         String am = input.readString("Εισάγετε τον αριθμό μητρώου του φοιτητή προς διαγραφή: ");
-        studentService.getStudentByAm(am);
 
         if (input.confirm("Διαγραφή του φοιτητή: " + am + "; (ν/ο) "))
         {

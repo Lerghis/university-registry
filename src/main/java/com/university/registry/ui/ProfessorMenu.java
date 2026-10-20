@@ -103,7 +103,6 @@ public class ProfessorMenu extends BaseMenu
     private void deleteProfessor() throws EntityNotFoundException, EntityInUseException
     {
         String profId = input.readString("Εισάγετε τον κωδικό του καθηγητή προς διαγραφή: ");
-        professorService.getProfById(profId);
 
         if (input.confirm("Διαγραφή του καθηγητή: " + profId + "; (ν/ο) "))
         {
