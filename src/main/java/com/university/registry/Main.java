@@ -1,20 +1,6 @@
 package com.university.registry;
 
-/**
- * Application entry point.
- * <p>
- * For now this just confirms the project skeleton builds and runs. Once the
- * service and DAO layers exist, this will bootstrap the database connection.
- */
-
 import com.university.registry.dao.*;
-import com.university.registry.exception.DuplicateEntityException;
-import com.university.registry.exception.EntityNotFoundException;
-import com.university.registry.exception.RegistryException;
-import com.university.registry.model.Course;
-import com.university.registry.model.Grade;
-import com.university.registry.model.Professor;
-import com.university.registry.model.Student;
 import com.university.registry.service.*;
 import com.university.registry.ui.*;
 import com.university.registry.util.DataSourceFactory;
@@ -30,6 +16,13 @@ import java.util.Scanner;
  */
 public class Main
 {
+    /**
+     * Application entry point.
+     * <p>
+     * It confirms the project skeleton builds and runs and
+     * bootstraps the database connection.
+     */
+
     private final StudentService studentService;
     private final ProfessorService professorService;
     private final CourseService courseService;
@@ -49,6 +42,7 @@ public class Main
     private final ProfessorMenu professorMenu;
     private final CourseMenu courseMenu;
     private final EnrollmentMenu enrollmentMenu;
+    private final GradeMenu gradeMenu;
 
     private final MainMenu mainMenu;
 
@@ -73,9 +67,8 @@ public class Main
         this.professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
         this.courseMenu = new CourseMenu(consoleInput, courseService, enrollmentService);
         this.enrollmentMenu = new EnrollmentMenu(consoleInput, enrollmentService);
-        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu, enrollmentMenu);
-
-        // keyboard = new Scanner(System.in);
+        this.gradeMenu = new GradeMenu(consoleInput, gradeService);
+        this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu, enrollmentMenu, gradeMenu);
     }
 
     /**
@@ -109,14 +102,6 @@ public class Main
         {
             System.out.println("Database connection FAILED: " + ex.getMessage());
         }
-
-        // --- FAILURE TESTS: each block DELIBERATELY tries to break one rule. ---
-        // Here we catch NARROWLY (the specific subclass) on purpose: we're
-        // not just checking "did something go wrong" — we're checking
-        // "did EXACTLY the right kind of thing go wrong." If the exception
-        // that fires is a DIFFERENT type than expected, Java won't even let
-        // it into this catch block, which itself would be a useful signal
-        // that our validation logic has a bug.
 
         mainMenu.run();
     }

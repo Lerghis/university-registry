@@ -100,7 +100,7 @@ public class ConsoleInput
             }
             catch (NumberFormatException ex)
             {
-                System.out.println("Παρακαλώ εισάγεται έναν δεκαδικό αριθμό");
+                System.out.println("Παρακαλώ εισάγετε έναν αριθμό.\n");
             }
         }
     }

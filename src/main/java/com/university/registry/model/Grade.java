@@ -48,4 +48,14 @@ public class Grade
         }
         this.gradeValue = gradeValue;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Βαθμός {" +
+                "Αριθμός μητρώου φοιτητή='" + studentAm + '\'' +
+                ", Κωδικός μαθήματος='" + courseId + '\'' +
+                ", Τιμή βαθμού=" + gradeValue +
+                '}';
+    }
 }

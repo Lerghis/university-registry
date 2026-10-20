@@ -1,6 +1,7 @@
 package com.university.registry.dao;
 
 import com.university.registry.exception.DataAccessException;
+import com.university.registry.exception.InvalidGradeException;
 import com.university.registry.model.Grade;
 import com.university.registry.util.DataSourceFactory;
 
@@ -8,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data Access Object for the {@code grades} table.
@@ -55,30 +58,69 @@ public class GradeDAO
     }
 
     /**
-     * Replaces the {@code containsKey} duplicate check in
-     * {@code GradeService.recordGrade}.
+     * Looks up for the grade for a specific student-course combination
      *
-     * @return {@code true} if a grade already exists for this student and course
+     * @param studentAm the Student's am (primary key)
+     * @param courseId the Course's if (primary key)
+     * @return the matching {@link Grade}, or {@code null} if no row matches
+     * @throws DataAccessException if the query itself fails
      */
-    public boolean exists(String studentAM, String courseId)
+    public Grade findByStudentAndCourse(String studentAm, String courseId)
     {
-        String sql = "SELECT COUNT(*) FROM grades WHERE student_am = ? AND course_id = ?";
+        String sql = "SELECT student_am, course_id, grade_value from grades WHERE student_am = ? AND course_id = ?";
 
         try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, studentAM);
+            stmt.setString(1, studentAm);
             stmt.setString(2, courseId);
 
             try(ResultSet rs = stmt.executeQuery())
             {
-                rs.next();
-                return rs.getInt(1) > 0;
+                if (rs.next())
+                {
+                    return mapRowToGrade(rs);
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
         catch (SQLException ex)
         {
-            throw new DataAccessException("Couldn't verify if the grade exists", ex);
+            throw new DataAccessException("Couldn't find the specific grade", ex);
         }
+    }
+
+    /**
+     * Looks up for all the grades for a specific student
+     *
+     * @param studentAm the Student's am
+     * @return a list with all the grades of that Student
+     */
+    public List<Grade> findByStudent(String studentAm)
+    {
+        String sql = "SELECT * FROM grades WHERE student_am = ?";
+        List<Grade> allGrades = new ArrayList<>();
+
+        try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setString(1, studentAm);
+
+            try(ResultSet rs = stmt.executeQuery())
+            {
+                while(rs.next())
+                {
+                    allGrades.add(mapRowToGrade(rs));
+                }
+            }
+        }
+        catch (SQLException ex)
+        {
+            throw new DataAccessException("Failed to load grades.", ex);
+        }
+
+        return allGrades;
     }
 
     /**
@@ -219,6 +261,35 @@ public class GradeDAO
         catch (SQLException ex)
         {
             throw new DataAccessException("Failed to delete grade", ex);
+        }
+    }
+
+    /**
+     * Builds a {@link Grade} from the current row of an open {@link ResultSet}.
+     * Shared by {@link #findByStudentAndCourse} to avoid duplicating
+     * the column-reading logic (DRY principle).
+     *
+     * @param rs a ResultSet which will get the data of a valid row (i.e. after a successful {@code rs.next()})
+     * @return the Grade represented by that row
+     * @throws SQLException if a column can't be read
+     * @throws DataAccessException if the row's data fails the {@link Grade}'s
+     *         validation - this should be impossible, since only already validated
+     *         grades are ever inserted, so it signals corrupted data rather than
+     *         a normal, expected failure.
+     */
+    private Grade mapRowToGrade(ResultSet rs) throws SQLException
+    {
+        String studentAm = rs.getString("student_am");
+        String courseId = rs.getString("course_id");
+        float grade_value = rs.getFloat("grade_value");
+
+        try
+        {
+            return new Grade(studentAm, courseId, grade_value);
+        }
+        catch (InvalidGradeException ex)
+        {
+            throw new DataAccessException("Corrupt data in grades table: invalid grade value. ", ex);
         }
     }
 }

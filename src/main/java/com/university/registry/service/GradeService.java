@@ -7,6 +7,8 @@ import com.university.registry.exception.InvalidGradeException;
 import com.university.registry.exception.NoGradesRecordedException;
 import com.university.registry.model.Grade;
 
+import java.util.List;
+
 /**
  /**
  * Business-logic layer for grades. Verifies that the student and course
@@ -55,12 +57,44 @@ public class GradeService
             throw new EntityNotFoundException("Εγγραφή", studentAm + "-" + courseId);
         }
 
-        if (gradeDAO.exists(studentAm, courseId))
+        if (gradeDAO.findByStudentAndCourse(studentAm, courseId) != null)
         {
             throw new DuplicateEntityException("Βαθμός", studentAm + "-" + courseId);
         }
 
         gradeDAO.insert(newGrade);
+    }
+
+    /**
+     * Looks for the Grade of a specific Student for a specific Course by calling {@link GradeDAO}'s {@code findByStudentAndCourse()} method.
+     *
+     * @param studentAm the Student's am (primary key)
+     * @param courseId the Course's id (primary key)
+     * @return the matching Grade
+     * @throws EntityNotFoundException if there is no recorded grade in the database
+     */
+    public Grade getGrade(String studentAm, String courseId) throws EntityNotFoundException
+    {
+        Grade grade = gradeDAO.findByStudentAndCourse(studentAm, courseId);
+        if (grade == null)
+        {
+            throw new EntityNotFoundException("Βαθμός", studentAm + "-" + courseId);
+        }
+
+        return grade;
+    }
+
+    /**
+     * Calls {@link GradeDAO}'s {@code findByStudent()} method to get the list of all the grades of that Student
+     *
+     * @param studentAm the Student's am (primary key)
+     * @return the list with all the grades
+     * @throws EntityNotFoundException if the Student isn't found in the database
+     */
+    public List<Grade> getGradesForStudent(String studentAm) throws EntityNotFoundException
+    {
+        studentService.getStudentByAm(studentAm);
+        return gradeDAO.findByStudent(studentAm);
     }
 
     /**
@@ -107,37 +141,24 @@ public class GradeService
      * Updates the value of a grade.
      *
      * @param grade the grade to be updated
-     * @throws EntityNotFoundException if the student or the course or the grade doesn't exist
+     * @throws EntityNotFoundException if the grade doesn't exist
      */
     public void updateGrade(Grade grade) throws EntityNotFoundException
     {
-        studentService.getStudentByAm(grade.getStudentAm());
-        courseService.getCourseById(grade.getCourseId());
-
-        if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
-        {
-            throw new EntityNotFoundException("Βαθμός", grade.getStudentAm() + "-" + grade.getCourseId());
-        }
-
+        getGrade(grade.getStudentAm(), grade.getCourseId());
         gradeDAO.update(grade);
     }
 
     /**
      * Deletes a grade.
      *
-     * @param grade the grade to be deleted
-     * @throws EntityNotFoundException if the student or the course or the grade doesn't exist
+     * @param studentAm the Student's am
+     * @param courseId the Course's id
+     * @throws EntityNotFoundException if the grade doesn't exist
      */
-    public void deleteGrade(Grade grade) throws EntityNotFoundException
+    public void deleteGrade(String studentAm, String courseId) throws EntityNotFoundException
     {
-        studentService.getStudentByAm(grade.getStudentAm());
-        courseService.getCourseById(grade.getCourseId());
-
-        if (!gradeDAO.exists(grade.getStudentAm(), grade.getCourseId()))
-        {
-            throw new EntityNotFoundException("Βαθμός", grade.getStudentAm() + "-" + grade.getCourseId());
-        }
-
+        Grade grade = getGrade(studentAm, courseId);
         gradeDAO.delete(grade);
     }
 }
