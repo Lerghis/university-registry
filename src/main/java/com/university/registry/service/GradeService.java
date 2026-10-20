@@ -158,7 +158,7 @@ public class GradeService
      */
     public void deleteGrade(String studentAm, String courseId) throws EntityNotFoundException
     {
-        Grade grade = getGrade(studentAm, courseId);
-        gradeDAO.delete(grade);
+        getGrade(studentAm, courseId);
+        gradeDAO.delete(studentAm, courseId);
     }
 }

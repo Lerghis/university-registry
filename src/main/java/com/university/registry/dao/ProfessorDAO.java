@@ -160,19 +160,19 @@ public class ProfessorDAO
     /**
      * Deletes the row matching the given professor's id.
      *
-     * @param professor the professor to be deleted; identified by {@code getProfId()}
+     * @param profId the identifier of the Professor that's going to be deleted
      * @throws DataAccessException if the delete fails (including a foreign
      *                              key violation, if active assignments
      *                              reference this professor)
      */
-    public void delete(Professor professor)
+    public void deleteById(String profId)
     {
         String sql = "DELETE FROM professors WHERE prof_id = ?";
 
         try (Connection conn = dataSourceFactory.getDataSource().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, professor.getProfId());
+            stmt.setString(1, profId);
             stmt.executeUpdate();
         }
         catch (SQLException ex)

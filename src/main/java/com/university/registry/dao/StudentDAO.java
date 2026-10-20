@@ -156,18 +156,18 @@ public class StudentDAO
     /**
      * Deletes the row matching the given student's Am
      *
-     * @param student the student to be deleted; identified by {@code getAm()}
+     * @param studentAm the identifier of the Student that's going to be deleted
      * @throws DataAccessException if the delete fails (including a foreign
      *                             key violation, if active enrollments
      *                             reference this student)
      */
-    public void delete(Student student)
+    public void deleteByAm(String studentAm)
     {
         String sql = "DELETE FROM students WHERE am = ?";
 
         try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, student.getAm());
+            stmt.setString(1, studentAm);
             stmt.executeUpdate(); // executeUpdate = for DELETE, returns rows affected
         }
         catch (SQLException ex)

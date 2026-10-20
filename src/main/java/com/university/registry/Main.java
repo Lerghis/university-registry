@@ -71,27 +71,6 @@ public class Main
         this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu, enrollmentMenu, gradeMenu);
     }
 
-    /**
-     * ===================================================
-     * ΕΠΕΞΗΓΗΣΗ ΤΗΣ ΙΕΡΑΡΧΙΑΣ ΤΩΝ ΕΞΑΙΡΕΣΕΩΝ ΚΑΙ ΤΩΝ CATCH BLOCKS
-     * ===================================================
-     * <p>
-     * Κάθε μία από τις παρακάτω εξαιρέσεις (InvalidSemesterException, DuplicateEntityException,
-     * EntityNotFoundException, InvalidGradeException, NoGradesRecordedException,
-     * EntityInUseException) κάνει EXTEND τη RegistryException.
-     * Αυτό σημαίνει ότι κάθε μία από αυτές είναι ταυτόχρονα και RegistryException (inheritance).
-     * <p>
-     * Εξαιτίας αυτού, το catch (RegistryException ex) μπορεί να κάνει catch οποιαδήποτε από τις Exception subclasses.
-     * H Java ελέγχει το είδους του object κατά το Runtime και εφόσον το είδος του object είναι πάντα RegistryException
-     * ή κάποιο από τα "παιδιά" του, το catch ταιριάζει. Αυτό είναι ο πολυμορφισμός: ένα catch block, πολλοί πιθανοί τύποι
-     * εξαιρέσεων από κάτω.
-     * <p>
-     * Καμία από τις παρακάτω service/model μεθόδους δεν περικλύζεται από το δικό της try/catch block.
-     * Όταν κάτι κάνει throw από μέσα, π.χ. Aπό το Student's Constructor ή από StudentService.addStudent, η εξαίρεση
-     * συνεχίζει να ταξιδεύει προς τα πάνω μέσα από κάθε μέθοδο που την κάλεσε μέχρι να φτάσει το πρώτο try/catch block
-     * που να δέχεται το είδος της. Γι'αυτό η υπογραφή κάθε μεθόδου έχει "throws…", διότι έτσι η Java αναγκάζει την εξαίρεση
-     * να ταξιδέψει από όλο το path.
-     */
     public void runSmokeTest()
     {
         try (Connection conn = dataSourceFactory.getDataSource().getConnection())

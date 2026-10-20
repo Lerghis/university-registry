@@ -248,14 +248,14 @@ public class GradeDAO
     /**
      * Deletes the grade matching this student and course.
      */
-    public void delete(Grade grade)
+    public void delete(String studentAm, String courseId)
     {
         String sql = "DELETE FROM grades WHERE student_am = ? AND course_id = ?";
 
         try(Connection conn = dataSourceFactory.getDataSource().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, grade.getStudentAm());
-            stmt.setString(2, grade.getCourseId());
+            stmt.setString(1, studentAm);
+            stmt.setString(2, courseId);
             stmt.executeUpdate();
         }
         catch (SQLException ex)

@@ -83,15 +83,15 @@ public class StudentService
 
     /**
      * Deletes the Student matching the given am by calling {@link StudentDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getStudentByAm()}.
+     * {@code deleteByAm()} method, after first verifying its existence with {@code getStudentByAm()}.
      *
      * @param am the identifier of the Student that's going to be deleted
      * @throws EntityNotFoundException if the Student isn't found in the database
      */
     public void deleteStudent(String am) throws EntityNotFoundException
     {
-        Student student = getStudentByAm(am);
-        studentDAO.delete(student);
+        getStudentByAm(am);
+        studentDAO.deleteByAm(am);
     }
 
     /**

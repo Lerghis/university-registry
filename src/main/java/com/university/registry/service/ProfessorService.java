@@ -84,15 +84,15 @@ public class ProfessorService
 
     /**
      * Deletes the Professor matching the given id by calling {@link ProfessorDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getProfById()}.
+     * {@code deleteById()} method, after first verifying its existence with {@code getProfById()}.
      *
      * @param id the identifier of the Professor that's going to be deleted
      * @throws EntityNotFoundException if the Professor isn't found in the database
      */
     public void deleteProfessor(String id) throws EntityNotFoundException
     {
-        Professor professor = getProfById(id);
-        professorDAO.delete(professor);
+        getProfById(id);
+        professorDAO.deleteById(id);
     }
 
     /**

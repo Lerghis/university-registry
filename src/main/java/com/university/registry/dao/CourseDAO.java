@@ -157,19 +157,19 @@ public class CourseDAO
     /**
      * Deletes the row matching the given course's id.
      *
-     * @param course the course to be deleted; identified by {@code getCourseId()}
+     * @param courseId the identifier of the Course that's going to be deleted
      * @throws DataAccessException if the delete fails (including a foreign
      *                              key violation, if active enrollments
      *                              reference this course)
      */
-    public void delete(Course course)
+    public void deleteById(String courseId)
     {
         String sql = "DELETE FROM courses WHERE course_id = ?";
 
         try (Connection conn = dataSourceFactory.getDataSource().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql))
         {
-            stmt.setString(1, course.getCourseId());
+            stmt.setString(1, courseId);
             stmt.executeUpdate();
         }
         catch (SQLException ex)

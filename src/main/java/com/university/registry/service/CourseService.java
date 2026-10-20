@@ -84,15 +84,15 @@ public class CourseService
 
     /**
      * Deletes the {@link Course} matching the given id by calling {@link CourseDAO}'s
-     * {@code delete()} method, after first verifying its existence with {@code getCourseById()}.
+     * {@code deleteById()} method, after first verifying its existence with {@code getCourseById()}.
      *
      * @param id the identifier of the Course that's going to be deleted
      * @throws EntityNotFoundException if the Course isn't found in the database
      */
     public void deleteCourse(String id) throws EntityNotFoundException
     {
-        Course course = getCourseById(id);
-        courseDAO.delete(course);
+        getCourseById(id);
+        courseDAO.deleteById(id);
     }
 
     /**
