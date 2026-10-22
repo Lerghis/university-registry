@@ -8,6 +8,11 @@ import com.university.registry.service.EnrollmentService;
 
 import java.util.Collection;
 
+/**
+ * Console menu for enrolling and unenrolling students, assigning and
+ * unassigning professors, and listing the courses of a student or a professor.
+ * Contains no business rules; see {@link StudentMenu}.
+ */
 public class EnrollmentMenu extends BaseMenu
 {
     private final EnrollmentService enrollmentService;

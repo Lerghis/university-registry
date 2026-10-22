@@ -1,17 +1,35 @@
 package com.university.registry.ui;
 
-import com.university.registry.exception.*;
+import com.university.registry.exception.DuplicateEntityException;
+import com.university.registry.exception.EntityInUseException;
+import com.university.registry.exception.EntityNotFoundException;
+import com.university.registry.exception.InvalidSemesterException;
 import com.university.registry.model.Student;
 import com.university.registry.service.EnrollmentService;
 import com.university.registry.service.StudentService;
 
 import java.util.Collection;
 
+/**
+ * Console menu for managing students: add, find by AM, list, update and delete.
+ * <p>
+ * Contains no business rules. It reads the input, delegates to
+ * {@link StudentService}, and lets any RegistryException travel up to
+ * {@link BaseMenu#run()}, which shows the message. Deletion goes through
+ * {@link EnrollmentService#deleteStudentSafely(String)}, so a student who is
+ * still enrolled cannot be removed.
+ */
 public class StudentMenu extends BaseMenu
 {
     private final StudentService studentService;
     private final EnrollmentService enrollmentService;
 
+    /**
+     *
+     * @param input             the shared keyboard helper
+     * @param studentService    used for add, find, list and update
+     * @param enrollmentService used for the safe delete
+     */
     public StudentMenu(ConsoleInput input, StudentService studentService, EnrollmentService enrollmentService)
     {
         super(input);
@@ -103,7 +121,7 @@ public class StudentMenu extends BaseMenu
     {
         String am = input.readString("Εισάγετε τον αριθμό μητρώου του φοιτητή προς διαγραφή: ");
 
-        if (input.confirm("Διαγραφή του φοιτητή: " + am + "; (ν/ο) "))
+        if (input.confirm("Διαγραφή του φοιτητή: " + am + ";"))
         {
             enrollmentService.deleteStudentSafely(am);
             System.out.println("Ο φοιτητής διαγράφηκε επιτυχώς.");

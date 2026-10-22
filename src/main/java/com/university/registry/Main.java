@@ -5,14 +5,12 @@ import com.university.registry.service.*;
 import com.university.registry.ui.*;
 import com.university.registry.util.DataSourceFactory;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Scanner;
-
 /**
- * Η κλάση Main είναι η βασική κλάση του προγράμματος. Κατασκευάζει κάθε Service με τη σωστή σειρά εξάρτησης.
- * Εκτελεί μία σειρά λειτουργιών για την επαλήθευση της ορθής συμπεριφοράς του γράφου αντικειμένων - δημιουργία
- * οντοτήτων, εγγραφή, καταχώρηση βαθμού και διαχείριση εξαιρέσεων.
+ * The Main class is the program's primary class.
+ * <p>
+ * It instantiates each Service following the correct dependency order.
+ * It performs a series of operations to verify the proper behavior of the object graph—including entity creation,
+ * registration, grade entry, and exception handling.
  */
 public class Main
 {
@@ -22,81 +20,75 @@ public class Main
      * It confirms the project skeleton builds and runs and
      * bootstraps the database connection.
      */
-
-    private final StudentService studentService;
-    private final ProfessorService professorService;
-    private final CourseService courseService;
-    private final EnrollmentService enrollmentService;
-    private final GradeService gradeService;
     private final DataSourceFactory dataSourceFactory;
-
-    private final StudentDAO studentDAO;
-    private final ProfessorDAO professorDAO;
-    private final CourseDAO courseDAO;
-    private final EnrollmentDAO enrollmentDAO;
-    private final GradeDAO gradeDAO;
-
-    Scanner keyboard;
     private final ConsoleInput consoleInput;
-    private final StudentMenu studentMenu;
-    private final ProfessorMenu professorMenu;
-    private final CourseMenu courseMenu;
-    private final EnrollmentMenu enrollmentMenu;
-    private final GradeMenu gradeMenu;
-
     private final MainMenu mainMenu;
 
-    public Main(ConsoleInput consoleInput)
+    public Main()
     {
         this.dataSourceFactory = new DataSourceFactory();
+        this.consoleInput = new ConsoleInput();
 
-        this.studentDAO = new StudentDAO(dataSourceFactory);
-        this.professorDAO = new ProfessorDAO(dataSourceFactory);
-        this.courseDAO = new CourseDAO(dataSourceFactory);
-        this.enrollmentDAO = new EnrollmentDAO(dataSourceFactory, courseDAO);
-        this.gradeDAO = new GradeDAO(dataSourceFactory);
+        StudentDAO studentDAO = new StudentDAO(dataSourceFactory);
+        ProfessorDAO professorDAO = new ProfessorDAO(dataSourceFactory);
+        CourseDAO courseDAO = new CourseDAO(dataSourceFactory);
+        EnrollmentDAO enrollmentDAO = new EnrollmentDAO(dataSourceFactory, courseDAO);
+        GradeDAO gradeDAO = new GradeDAO(dataSourceFactory);
 
-        this.studentService = new StudentService(studentDAO);
-        this.professorService = new ProfessorService(professorDAO);
-        this.courseService = new CourseService(courseDAO);
-        this.enrollmentService = new EnrollmentService(studentService, professorService, courseService, enrollmentDAO);
-        this.gradeService = new GradeService(studentService, courseService, enrollmentService, gradeDAO);
+        StudentService studentService = new StudentService(studentDAO);
+        ProfessorService professorService = new ProfessorService(professorDAO);
+        CourseService courseService = new CourseService(courseDAO);
+        EnrollmentService enrollmentService = new EnrollmentService(studentService, professorService, courseService, enrollmentDAO);
+        GradeService gradeService = new GradeService(studentService, courseService, enrollmentService, gradeDAO);
 
-        this.consoleInput = consoleInput;
-        this.studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
-        this.professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
-        this.courseMenu = new CourseMenu(consoleInput, courseService, enrollmentService);
-        this.enrollmentMenu = new EnrollmentMenu(consoleInput, enrollmentService);
-        this.gradeMenu = new GradeMenu(consoleInput, gradeService);
+        StudentMenu studentMenu = new StudentMenu(consoleInput, studentService, enrollmentService);
+        ProfessorMenu professorMenu = new ProfessorMenu(consoleInput, professorService, enrollmentService);
+        CourseMenu courseMenu = new CourseMenu(consoleInput, courseService, enrollmentService);
+        EnrollmentMenu enrollmentMenu = new EnrollmentMenu(consoleInput, enrollmentService);
+        GradeMenu gradeMenu = new GradeMenu(consoleInput, gradeService);
+
         this.mainMenu = new MainMenu(consoleInput, studentMenu, professorMenu, courseMenu, enrollmentMenu, gradeMenu);
     }
 
-    public void runSmokeTest()
+    /** Starts the console UI; returns when the user chooses Exit. */
+    public void run()
     {
-        try (Connection conn = dataSourceFactory.getDataSource().getConnection())
-        {
-            System.out.println("Database connection successful: " + conn.getCatalog());
-        }
-        catch (SQLException ex)
-        {
-            System.out.println("Database connection FAILED: " + ex.getMessage());
-        }
-
         mainMenu.run();
     }
 
+    /** Releases the resources that live as long as the program: the input and the pool. */
     private void closeDataSource()
     {
+        consoleInput.close();
         dataSourceFactory.close();
     }
+
+    /**
+     * Starts the application. If it cannot even be built (missing
+     * {@code db.properties}, database down), prints a short explanation instead
+     * of only a raw stack trace.
+     *
+     * @param args not used
+     */
     public static void main(String[] args)
     {
-        System.out.println("University Registry System - project skeleton is wired up correctly.");
-        Main app = new Main(new ConsoleInput());
+        Main app;
 
         try
         {
-            app.runSmokeTest();
+            app = new Main();
+        }
+        catch (RuntimeException ex)
+        {
+            System.out.println("Η εφαρμογή δεν μπόρεσε να ξεκινήσει. "
+                    + "Ελέγξτε το αρχείο db.properties και ότι η βάση δεδομένων λειτουργεί.");
+            ex.printStackTrace();
+            return;
+        }
+
+        try
+        {
+            app.run();
         }
         finally
         {

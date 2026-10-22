@@ -9,6 +9,12 @@ import com.university.registry.service.ProfessorService;
 
 import java.util.Collection;
 
+/**
+ * Console menu for managing professors: add, find by id, list, update and delete.
+ * Deletion goes through {@link EnrollmentService#deleteProfessorSafely(String)},
+ * so a professor who is still assigned to a course cannot be removed.
+ * Contains no business rules; see {@link StudentMenu}.
+ */
 public class ProfessorMenu extends BaseMenu
 {
     private final ProfessorService professorService;
@@ -104,7 +110,7 @@ public class ProfessorMenu extends BaseMenu
     {
         String profId = input.readString("Εισάγετε τον κωδικό του καθηγητή προς διαγραφή: ");
 
-        if (input.confirm("Διαγραφή του καθηγητή: " + profId + "; (ν/ο) "))
+        if (input.confirm("Διαγραφή του καθηγητή: " + profId + ";"))
         {
             enrollmentService.deleteProfessorSafely(profId);
             System.out.println("Ο καθηγητής διαγράφηκε επιτυχώς.");

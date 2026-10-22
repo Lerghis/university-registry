@@ -42,7 +42,7 @@ public class Grade
 
     public void setGradeValue(float gradeValue) throws InvalidGradeException
     {
-        if (gradeValue < 0 || gradeValue > 10)
+        if (!(gradeValue >= 0 && gradeValue <= 10)) // "not inside the range", so NaN is rejected too. It describes what is allowed, anything else is rejected.
         {
             throw new InvalidGradeException(gradeValue);
         }

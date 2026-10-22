@@ -10,6 +10,12 @@ import com.university.registry.service.EnrollmentService;
 
 import java.util.Collection;
 
+/**
+ * Console menu for managing courses: add, find by id, list, update and delete.
+ * Deletion goes through {@link EnrollmentService#deleteCourseSafely(String)},
+ * so a course with enrollments or assignments cannot be removed.
+ * Contains no business rules; see {@link StudentMenu}.
+ */
 public class CourseMenu extends BaseMenu
 {
     private final CourseService courseService;
@@ -101,7 +107,7 @@ public class CourseMenu extends BaseMenu
     {
         String courseId = input.readString("Εισάγετε τον κωδικό του μαθήματος προς διαγραφή: ");
 
-        if (input.confirm("Διαγραφή του μαθήματος: " + courseId + "; (n/o) "))
+        if (input.confirm("Διαγραφή του μαθήματος: " + courseId + ";"))
         {
             enrollmentService.deleteCourseSafely(courseId);
             System.out.println("Το μάθημα διαγράφηκε επιτυχώς.");

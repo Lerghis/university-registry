@@ -6,15 +6,19 @@ import com.university.registry.service.GradeService;
 
 import java.util.Collection;
 
+/**
+ * Console menu for grades: record, list a student's grades, student and course
+ * averages, update and delete. When a new grade is out of range it asks again
+ * (a narrow catch of {@link InvalidGradeException}) instead of returning to
+ * the menu. Contains no business rules; see {@link StudentMenu}.
+ */
 public class GradeMenu extends BaseMenu
 {
-    private final ConsoleInput input;
     private final GradeService gradeService;
 
     public GradeMenu(ConsoleInput input, GradeService gradeService)
     {
         super(input);
-        this.input = input;
         this.gradeService = gradeService;
     }
 
@@ -80,14 +84,16 @@ public class GradeMenu extends BaseMenu
     {
         String studentAm = input.readString("Αριθμός μητρώου φοιτητή: ");
         float avg = gradeService.getStudentAverage(studentAm);
-        System.out.println("Ο μέσος όρος βαθμών για τον φοιτητή " + studentAm + " είναι: " + avg + ".");
+        System.out.print("Ο μέσος όρος βαθμών για τον φοιτητή " + studentAm + " είναι: ");
+        System.out.printf("%.2f%n", avg);
     }
 
     private void courseAverage() throws NoGradesRecordedException, EntityNotFoundException
     {
         String courseId = input.readString("Κωδικός μαθήματος: ");
         float avg = gradeService.getCourseAverage(courseId);
-        System.out.println("Ο μέσος όρος βαθμών για το μάθημα " + courseId + " είναι: " + avg + ".");
+        System.out.print("Ο μέσος όρος βαθμών για το μάθημα " + courseId + " είναι: ");
+        System.out.printf("%.2f%n", avg);
     }
 
     private void updateGrade() throws EntityNotFoundException
@@ -119,9 +125,17 @@ public class GradeMenu extends BaseMenu
     {
         String studentAm = input.readString("Αριθμός μητρώου φοιτητή: ");
         String courseId = input.readString("Κωδικός μαθήματος: ");
-        gradeService.getGrade(studentAm, courseId);
+        Grade grade = gradeService.getGrade(studentAm, courseId);
+        System.out.println(grade);
 
-        gradeService.deleteGrade(studentAm, courseId);
-        System.out.println("Ο βαθμός διαγράφηκε επιτυχώς.");
+        if (input.confirm("Διαγραφή του βαθμού;"))
+        {
+            gradeService.deleteGrade(studentAm, courseId);
+            System.out.println("Ο βαθμός διαγράφηκε επιτυχώς.");
+        }
+        else
+        {
+            System.out.println("Η διαγραφή ακυρώθηκε.");
+        }
     }
 }

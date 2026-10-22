@@ -1,7 +1,11 @@
 package com.university.registry.ui;
 
-import com.university.registry.exception.RegistryException;
-
+/**
+ * The entry menu (the hub): each option calls {@code run()} on the matching
+ * topic menu. Holds no services, because routing is its only job. It
+ * implements {@code showOptions()} and {@code handle(int)} and inherits
+ * {@code run()} and the shared {@code input} from {@link BaseMenu}.
+ */
 public class MainMenu extends BaseMenu
 {
     private final StudentMenu studentMenu;
@@ -12,7 +16,7 @@ public class MainMenu extends BaseMenu
 
     public MainMenu(ConsoleInput input, StudentMenu studentMenu, ProfessorMenu professorMenu, CourseMenu courseMenu, EnrollmentMenu enrollmentMenu, GradeMenu gradeMenu)
     {
-        super(input);
+        super(input); // it passes input up to the parent’s constructor, which stores it in the field
         this.studentMenu = studentMenu;
         this.professorMenu = professorMenu;
         this.courseMenu = courseMenu;
@@ -30,14 +34,13 @@ public class MainMenu extends BaseMenu
         System.out.println ("[3]......ΔΙΑΧΕΙΡΙΣΗ ΜΑΘΗΜΑΤΩΝ\n");
         System.out.println ("[4]......ΔΙΑΧΕΙΡΙΣΗ ΕΓΓΡΑΦΩΝ/ΑΝΑΘΕΣΕΩΝ\n");
         System.out.println ("[5]......ΔΙΑΧΕΙΡΙΣΗ ΒΑΘΜΩΝ\n");
-        System.out.println ("[0]......ΕΠΙΣΤΡΟΦΗ\n");
+        System.out.println ("[0]......ΕΞΟΔΟΣ\n");
         System.out.println ("=======================================");
     }
 
     @Override
-    protected void handle(int choice) throws RegistryException
+    protected void handle(int choice)
     {
-
         switch (choice)
         {
             case 1 -> studentMenu.run();
