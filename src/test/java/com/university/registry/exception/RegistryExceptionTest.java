@@ -2,8 +2,6 @@ package com.university.registry.exception;
 
 import org.junit.jupiter.api.Test;
 
-import javax.swing.text.html.parser.Entity;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
