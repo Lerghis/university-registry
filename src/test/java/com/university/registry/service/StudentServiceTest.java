@@ -46,10 +46,8 @@ public class StudentServiceTest
     }
 
     @Test
-    void getStudentByAm_whenMissing_throwsEntityNotFoundException() throws Exception
+    void getStudentByAm_whenMissing_throwsEntityNotFoundException()
     {
-        // service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
-
         try
         {
             service.getStudentByAm("AM1");
@@ -64,11 +62,10 @@ public class StudentServiceTest
     @Test
     void updateStudent_whenMissing_throwsEntityNotFoundException() throws Exception
     {
-        //service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
+        Student student = new Student("AM1", 1, "Maria", "m@x.gr", "100");
 
         try
         {
-            Student student = service.getStudentByAm("AM1");
             service.updateStudent(student);
             fail("Expected an EntityNotFoundException but nothing was thrown");
         }
@@ -82,19 +79,24 @@ public class StudentServiceTest
     void updateStudent_whenExists_changesTheStoredValues() throws Exception
     {
         service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
-        Student student = service.getStudentByAm("AM1");
 
-        student.setName("Eleni");
-        service.updateStudent(student);
+        service.updateStudent(new Student("AM1", 1, "Eleni", "e@x.gr", "200"));   // a DIFFERENT object, same AM
 
         assertEquals("Eleni", service.getStudentByAm("AM1").getName());
     }
 
     @Test
-    void deleteStudent_whenMissing_throwsEntityNotFoundException() throws Exception
+    void deleteStudent_whenMissing_throwsEntityNotFoundException()
     {
-        service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
-        service.deleteStudent("AM1");
+        try
+        {
+            service.deleteStudent("AM1");
+            fail("Expected an EntityNotFoundException but nothing was thrown");
+        }
+        catch (EntityNotFoundException ex)
+        {
+            // expected: the test passes
+        }
     }
 
     @Test
