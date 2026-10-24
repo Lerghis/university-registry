@@ -39,7 +39,7 @@ Each layer talks only to the layer directly below it.
 before it:
 
 1. `DataSourceFactory`
-2. `StudentDAO`, `ProfessorDAO`, `CourseDAO`, `GradeDAO` (need only the factory)
+2. `JdbcStudentDAO`, `ProfessorDAO`, `CourseDAO`, `GradeDAO` (need only the factory)
 3. `EnrollmentDAO` (factory + `CourseDAO`, to reuse row mapping)
 4. `StudentService`, `ProfessorService`, `CourseService` (one DAO each)
 5. `EnrollmentService` (the three entity services + `EnrollmentDAO`)

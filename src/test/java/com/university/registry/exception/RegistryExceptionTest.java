@@ -2,6 +2,8 @@ package com.university.registry.exception;
 
 import org.junit.jupiter.api.Test;
 
+import javax.swing.text.html.parser.Entity;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -9,10 +11,12 @@ import static org.junit.jupiter.api.Assertions.*;
  *   1. Is a RegistryException (so broad catches still work)
  *   2. Produces a clear, useful message
  */
-class RegistryExceptionTest {
+class RegistryExceptionTest
+{
 
     @Test
-    void invalidSemesterException_isARegistryException_withUsefulMessage() {
+    void invalidSemesterException_isARegistryException_withUsefulMessage()
+    {
         InvalidSemesterException ex = new InvalidSemesterException(0);
 
         assertInstanceOf(RegistryException.class, ex);
@@ -21,7 +25,8 @@ class RegistryExceptionTest {
     }
 
     @Test
-    void duplicateEntityException_includesEntityTypeAndIdentifier() {
+    void duplicateEntityException_includesEntityTypeAndIdentifier()
+    {
         DuplicateEntityException ex = new DuplicateEntityException("Student", "AM12345");
 
         assertInstanceOf(RegistryException.class, ex);
@@ -30,11 +35,41 @@ class RegistryExceptionTest {
     }
 
     @Test
-    void entityNotFoundException_includesEntityTypeAndIdentifier() {
+    void entityNotFoundException_includesEntityTypeAndIdentifier()
+    {
         EntityNotFoundException ex = new EntityNotFoundException("Course", "CS101");
 
         assertInstanceOf(RegistryException.class, ex);
         assertTrue(ex.getMessage().contains("Course"));
         assertTrue(ex.getMessage().contains("CS101"));
+    }
+
+    @Test
+    void entityInUseException_includesEntityTypeAndIdentifier()
+    {
+        EntityInUseException ex = new EntityInUseException("Student", "AM12345");
+
+        assertInstanceOf(RegistryException.class, ex);
+        assertTrue(ex.getMessage().contains("Student"));
+        assertTrue(ex.getMessage().contains("AM12345"));
+    }
+
+    @Test
+    void invalidGradeException_isARegistryException_withUsefulMessage()
+    {
+        InvalidGradeException ex = new InvalidGradeException(12);
+
+        assertInstanceOf(RegistryException.class, ex);
+        assertFalse(ex.getMessage().isBlank());
+    }
+
+    @Test
+    void noGradesRecordedException_includesEntityTypeAndIdentifier()
+    {
+        NoGradesRecordedException ex = new NoGradesRecordedException("Student", "AM12345");
+
+        assertInstanceOf(RegistryException.class, ex);
+        assertTrue(ex.getMessage().contains("Student"));
+        assertTrue(ex.getMessage().contains("AM12345"));
     }
 }
