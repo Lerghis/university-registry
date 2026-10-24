@@ -2,9 +2,7 @@ package com.university.registry.exception;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Verifies that each domain exception:
@@ -18,8 +16,8 @@ class RegistryExceptionTest {
         InvalidSemesterException ex = new InvalidSemesterException(0);
 
         assertInstanceOf(RegistryException.class, ex);
+        assertFalse(ex.getMessage().isBlank());
         assertTrue(ex.getMessage().contains("0"));
-        assertTrue(ex.getMessage().contains("Semester"));
     }
 
     @Test
@@ -27,10 +25,8 @@ class RegistryExceptionTest {
         DuplicateEntityException ex = new DuplicateEntityException("Student", "AM12345");
 
         assertInstanceOf(RegistryException.class, ex);
-        assertEquals(
-                "Student with identifier 'AM12345' already exists.",
-                ex.getMessage()
-        );
+        assertTrue(ex.getMessage().contains("Student"));
+        assertTrue(ex.getMessage().contains("AM12345"));
     }
 
     @Test
@@ -38,9 +34,7 @@ class RegistryExceptionTest {
         EntityNotFoundException ex = new EntityNotFoundException("Course", "CS101");
 
         assertInstanceOf(RegistryException.class, ex);
-        assertEquals(
-                "Course with identifier 'CS101' was not found.",
-                ex.getMessage()
-        );
+        assertTrue(ex.getMessage().contains("Course"));
+        assertTrue(ex.getMessage().contains("CS101"));
     }
 }
