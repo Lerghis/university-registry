@@ -47,6 +47,6 @@ decisions, patterns, and principles applied throughout.
 - [x] Service layer (Student, Professor, Course, Enrollment, Grade)
 - [x] MariaDB schema
 - [x] DAO layer (JDBC + HikariCP) — in progress
-- [ ] Console UI layer
+- [x] Console UI layer
 - [ ] Convert to Spring Boot REST API
 - [ ] Spring Security login / role-based access

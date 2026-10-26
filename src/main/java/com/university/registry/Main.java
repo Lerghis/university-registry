@@ -29,7 +29,7 @@ public class Main
         this.dataSourceFactory = new DataSourceFactory();
         this.consoleInput = new ConsoleInput();
 
-        StudentDAO studentDAO = new StudentDAO(dataSourceFactory);
+        StudentDAO studentDAO = new JdbcStudentDAO(dataSourceFactory); // polymorphism
         ProfessorDAO professorDAO = new ProfessorDAO(dataSourceFactory);
         CourseDAO courseDAO = new CourseDAO(dataSourceFactory);
         EnrollmentDAO enrollmentDAO = new EnrollmentDAO(dataSourceFactory, courseDAO);

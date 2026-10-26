@@ -39,7 +39,7 @@ Each layer talks only to the layer directly below it.
 before it:
 
 1. `DataSourceFactory`
-2. `StudentDAO`, `ProfessorDAO`, `CourseDAO`, `GradeDAO` (need only the factory)
+2. `JdbcStudentDAO`, `ProfessorDAO`, `CourseDAO`, `GradeDAO` (need only the factory)
 3. `EnrollmentDAO` (factory + `CourseDAO`, to reuse row mapping)
 4. `StudentService`, `ProfessorService`, `CourseService` (one DAO each)
 5. `EnrollmentService` (the three entity services + `EnrollmentDAO`)
@@ -253,3 +253,21 @@ Defined in `docs/schema.sql`. Key decisions:
 - Automated tests exist only for the exception hierarchy.
 - Spring Boot conversion: `RegistryException` will likely become unchecked,
   since checked exceptions fit poorly with Spring's exception handling.
+
+## 15. UI layer (console)
+
+- **Template Method:** `BaseMenu.run()` owns the loop and the error handling;
+  each menu supplies only `showOptions()` and `handle(int)`.
+- **Hub and spoke:** `MainMenu` routes to the five topic menus; topic menus never
+  know about each other or about `MainMenu`.
+- **Boundary:** `ConsoleInput` turns raw typing into typed values. The UI checks
+  the *format* of input; the model classes decide *validity*.
+- **Error policy:** `RegistryException` shows its own (user-facing) message;
+  `DataAccessException` shows a generic message and the stack trace goes to
+  stderr; any other `RuntimeException` is reported the same way so the program
+  keeps running.
+- **Rules:** menus call only services, and always the *safe* deletes on
+  `EnrollmentService`. Destructive actions use `confirm`, where anything but a
+  clear yes means no.
+- **Known issue:** prompts contain no lookalike letters (Latin `n` vs Greek `ν`);
+  `confirm` appends its own suffix for this reason.
