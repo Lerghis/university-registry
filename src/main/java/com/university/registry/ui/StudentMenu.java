@@ -75,7 +75,7 @@ public class StudentMenu extends BaseMenu
 
         Student student = new Student(am, semester, name, email, phone);
         studentService.addStudent(student);
-        System.out.println("Ο φοιτητής προστέθηκε επιτυχώς.");
+        System.out.println("\nΟ φοιτητής προστέθηκε επιτυχώς.");
     }
 
     private void findStudent() throws EntityNotFoundException
@@ -108,13 +108,13 @@ public class StudentMenu extends BaseMenu
         Student student = studentService.getStudentByAm(am);
         System.out.println(student);
 
-        student.setName(input.readStringOrKeep("Ονοματεπώνυμο ", student.getName()));
+        student.setName(input.readStringOrKeep("\nΟνοματεπώνυμο ", student.getName()));
         student.setSemester(input.readIntOrKeep("Εξάμηνο ", student.getSemester()));
         student.setEmail(input.readStringOrKeep("Email ", student.getEmail()));
         student.setPhone(input.readStringOrKeep("Τηλέφωνο ", student.getPhone()));
 
         studentService.updateStudent(student);
-        System.out.println("Τα στοιχεία του φοιτητή ενημερώθηκαν.");
+        System.out.println("\nΤα στοιχεία του φοιτητή ενημερώθηκαν.");
     }
 
     private void deleteStudent() throws EntityNotFoundException, EntityInUseException

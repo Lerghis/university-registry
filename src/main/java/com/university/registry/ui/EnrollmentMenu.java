@@ -59,7 +59,7 @@ public class EnrollmentMenu extends BaseMenu
         String courseId = input.readString("Κωδικός μαθήματος: ");
 
         enrollmentService.enrollStudentToCourse(studentAm, courseId);
-        System.out.println("Ο φοιτητής εγγράφηκε επιτυχώς.");
+        System.out.println("\nΟ φοιτητής εγγράφηκε επιτυχώς.");
     }
 
     private void unenrollStudent() throws EntityInUseException, EntityNotFoundException
@@ -68,7 +68,7 @@ public class EnrollmentMenu extends BaseMenu
         String courseId = input.readString("Κωδικός μαθήματος: ");
 
         enrollmentService.unenrollStudent(studentAm, courseId);
-        System.out.println("Επιτυχής απεγγραφή φοιτητή.");
+        System.out.println("\nΕπιτυχής απεγγραφή φοιτητή.");
     }
 
     private void assignProfessor() throws DuplicateEntityException, EntityNotFoundException
@@ -77,7 +77,7 @@ public class EnrollmentMenu extends BaseMenu
         String courseId = input.readString("Κωδικός μαθήματος: ");
 
         enrollmentService.assignCourseToProfessor(profId, courseId);
-        System.out.println("Επιτυχής ανάθεση μαθήματος σε καθηγητή.");
+        System.out.println("\nΕπιτυχής ανάθεση μαθήματος σε καθηγητή.");
     }
 
     private void unassignProfessor() throws EntityNotFoundException
@@ -86,7 +86,7 @@ public class EnrollmentMenu extends BaseMenu
         String courseId = input.readString("Κωδικός μαθήματος: ");
 
         enrollmentService.unassignProfessor(profId, courseId);
-        System.out.println("Επιτυχής αφαίρεση ανάθεσης.");
+        System.out.println("\nΕπιτυχής αφαίρεση ανάθεσης.");
     }
 
     private void showStudentCourses() throws EntityNotFoundException

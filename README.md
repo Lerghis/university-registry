@@ -1,9 +1,9 @@
 # University Registry System
 
-Μία layered CRUD εφαρμογή, σύστημα φοιτητικού μητρώου, που επιτρέπει τη διαχείριση 
-μελών (φοιτητών και καθηγητών), μαθημάτων, εγγραφών και βαθμών σε ένα εκπαιδευτικό ίδρυμα.
-Είναι ένα learning project το οποίο προς το παρόν είναι μια εφαρμογή κονσόλας που υποστηρίζεται
-από τη Βάση Δεδομένων MariaDB, με στόχο τη μετάβαση σε REST API με Spring Boot.
+A layered CRUD application — a student registry system — for managing members 
+(students and faculty), courses, enrollments, and grades within an educational institution. 
+It is a learning project currently implemented as a console application backed by a MariaDB database, 
+with the goal of transitioning to a REST API using Spring Boot.
 
 ## Tech stack
 

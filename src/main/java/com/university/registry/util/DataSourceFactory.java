@@ -17,10 +17,10 @@ import java.util.Properties;
  */
 public class DataSourceFactory
 {
-    /*
-    Field variable because the value of dataSource (i.e. the contents of db.properties) will be called by other classes
-    long after the constructor of this class finished running. The object needs to store it somewhere permanent because it
-    will be used in other method calls over the life of the program.
+    /**
+     * Field variable because the value of dataSource (i.e. the contents of db.properties) will be called by other classes
+     *     long after the constructor of this class finished running. The object needs to store it somewhere permanent because it
+     *     will be used in other method calls over the life of the program.
      */
     private final HikariDataSource dataSource;
 

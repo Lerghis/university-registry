@@ -65,7 +65,7 @@ public class ProfessorMenu extends BaseMenu
 
         Professor professor = new Professor(profId, specialty, name, email, phone);
         professorService.addProfessor(professor);
-        System.out.println("Ο καθηγητής προστέθηκε επιτυχώς.");
+        System.out.println("\nΟ καθηγητής προστέθηκε επιτυχώς.");
     }
 
     private void findProfById() throws EntityNotFoundException
@@ -96,14 +96,15 @@ public class ProfessorMenu extends BaseMenu
     {
         String profId = input.readString("Εισάγετε τον κωδικό του καθηγητή προς επεξεργασία: ");
         Professor professor = professorService.getProfById(profId);
+        System.out.println(professor);
 
-        professor.setSpecialty(input.readStringOrKeep("Ειδικότητα ", professor.getSpecialty()));
+        professor.setSpecialty(input.readStringOrKeep("\nΕιδικότητα ", professor.getSpecialty()));
         professor.setName(input.readStringOrKeep("Ονοματεπώνυμο ", professor.getName()));
         professor.setEmail(input.readStringOrKeep("Email ", professor.getEmail()));
         professor.setPhone(input.readStringOrKeep("Τηλέφωνο ", professor.getPhone()));
 
         professorService.updateProfessor(professor);
-        System.out.println("Ο καθηγητής ενημερώθηκε επιτυχώς.");
+        System.out.println("\nΤα στοιχεία του καθηγητή ενημερώθηκαν.");
     }
 
     private void deleteProfessor() throws EntityNotFoundException, EntityInUseException

@@ -59,7 +59,7 @@ public class GradeMenu extends BaseMenu
         float gradeValue = input.readFloat("Εισάγετε τον βαθμό: ");
 
         gradeService.recordGrade(studentAm, courseId, gradeValue);
-        System.out.println("Ο βαθμός καταχωρήθηκε επιτυχώς.");
+        System.out.println("\nΟ βαθμός καταχωρήθηκε επιτυχώς.");
     }
 
     private void listGradesForStudent() throws EntityNotFoundException
@@ -69,10 +69,11 @@ public class GradeMenu extends BaseMenu
 
         if (list.isEmpty())
         {
-            System.out.println("Δεν υπάρχουν καταχωρημένοι βαθμοί για τον συγκεκριμένο φοιτητή.");
+            System.out.println("\nΔεν υπάρχουν καταχωρημένοι βαθμοί για τον συγκεκριμένο φοιτητή.");
         }
         else
         {
+            System.out.println();
             for (Grade grade : list)
             {
                 System.out.println(grade.toString());
@@ -84,7 +85,7 @@ public class GradeMenu extends BaseMenu
     {
         String studentAm = input.readString("Αριθμός μητρώου φοιτητή: ");
         float avg = gradeService.getStudentAverage(studentAm);
-        System.out.print("Ο μέσος όρος βαθμών για τον φοιτητή " + studentAm + " είναι: ");
+        System.out.print("\nΟ μέσος όρος βαθμών για τον φοιτητή " + studentAm + " είναι: ");
         System.out.printf("%.2f%n", avg);
     }
 
@@ -92,7 +93,7 @@ public class GradeMenu extends BaseMenu
     {
         String courseId = input.readString("Κωδικός μαθήματος: ");
         float avg = gradeService.getCourseAverage(courseId);
-        System.out.print("Ο μέσος όρος βαθμών για το μάθημα " + courseId + " είναι: ");
+        System.out.print("\nΟ μέσος όρος βαθμών για το μάθημα " + courseId + " είναι: ");
         System.out.printf("%.2f%n", avg);
     }
 
@@ -102,6 +103,7 @@ public class GradeMenu extends BaseMenu
         String courseId = input.readString("Κωδικός μαθήματος: ");
         Grade grade = gradeService.getGrade(studentAm, courseId);
         System.out.println(grade);
+        System.out.println();
 
         boolean validInput = false;
         while (!validInput)
@@ -118,7 +120,7 @@ public class GradeMenu extends BaseMenu
         }
 
         gradeService.updateGrade(grade);
-        System.out.println("Ο βαθμός ενημερώθηκε επιτυχώς.");
+        System.out.println("\nΟ βαθμός ενημερώθηκε επιτυχώς.");
     }
 
     private void deleteGrade() throws EntityNotFoundException

@@ -64,7 +64,7 @@ public class CourseMenu extends BaseMenu
 
         Course course = new Course(courseId, courseTitle, courseSemester);
         courseService.addCourse(course);
-        System.out.println("Το μάθημα προστέθηκε επιτυχώς.");
+        System.out.println("\nΤο μάθημα προστέθηκε επιτυχώς.");
     }
 
     private void findCourseById() throws EntityNotFoundException
@@ -95,12 +95,13 @@ public class CourseMenu extends BaseMenu
     {
         String courseId = input.readString("Εισάγετε τον κωδικό του μαθήματος προς επεξεργασία: ");
         Course course = courseService.getCourseById(courseId);
+        System.out.println(course);
 
-        course.setCourseTitle(input.readStringOrKeep("Τίτλος μαθήματος ", course.getCourseTitle()));
+        course.setCourseTitle(input.readStringOrKeep("\nΤίτλος μαθήματος ", course.getCourseTitle()));
         course.setCourseSemester(input.readIntOrKeep("Εξάμηνο ", course.getCourseSemester()));
 
         courseService.updateCourse(course);
-        System.out.println("Το μάθημα ενημερώθηκε επιτυχώς.");
+        System.out.println("\nΤα στοιχεία του μαθήματος ενημερώθηκαν.");
     }
 
     private void deleteCourse() throws EntityNotFoundException, EntityInUseException
