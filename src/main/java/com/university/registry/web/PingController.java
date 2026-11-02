@@ -9,7 +9,6 @@ public class PingController
     @GetMapping("/ping")
     public String ping()
     {
-        System.out.println("ping() was called by Spring");
         return "pong";
     }
 }

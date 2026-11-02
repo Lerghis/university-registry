@@ -1,12 +1,19 @@
 package com.university.registry.model;
 
 import com.university.registry.exception.InvalidSemesterException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "students")
 public class Student extends Person
 {
+    @Id
+    @Column(name = "am")
     private String am;
     private int semester;
-
 
     public Student(String am, int semester, String name, String email, String phone) throws InvalidSemesterException
     {
@@ -14,6 +21,8 @@ public class Student extends Person
         this.am = am.trim();
         setSemester(semester);
     }
+
+    protected Student() { }
 
     public String getAm()
     {

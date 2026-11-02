@@ -1,5 +1,8 @@
 package com.university.registry.model;
 
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
 public class Person
 {
     protected String name;
@@ -12,6 +15,8 @@ public class Person
         this.email = email;
         this.phone = phone;
     }
+
+    protected Person() { }
 
     public String getName()
     {
