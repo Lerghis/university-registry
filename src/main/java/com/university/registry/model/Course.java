@@ -1,12 +1,21 @@
 package com.university.registry.model;
 
 import com.university.registry.exception.InvalidSemesterException;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+
+@Entity
+@Table(name = "courses")
 public class Course
 {
+    @Id
     private String courseId;
     private String courseTitle;
     private int courseSemester;
+
+    protected Course() { }
 
     public Course(String courseId, String courseTitle, int courseSemester) throws InvalidSemesterException
     {

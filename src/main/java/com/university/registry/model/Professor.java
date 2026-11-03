@@ -1,9 +1,18 @@
 package com.university.registry.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "professors")
 public class Professor extends Person
 {
+    @Id
     private String profId;
     private String specialty;
+
+    protected Professor() { }
 
     public Professor(String profId, String specialty, String name, String email, String phone)
     {

@@ -15,14 +15,14 @@ public class Student extends Person
     private String am;
     private int semester;
 
+    protected Student() { }
+
     public Student(String am, int semester, String name, String email, String phone) throws InvalidSemesterException
     {
         super(name, email, phone);
         this.am = am.trim();
         setSemester(semester);
     }
-
-    protected Student() { }
 
     public String getAm()
     {
