@@ -1,12 +1,28 @@
 package com.university.registry.model;
 
 import com.university.registry.exception.InvalidGradeException;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "grades")
+@IdClass(StudentCourseId.class)
 public class Grade
 {
+    @Id
     private String studentAm;
+
+    @Id
     private String courseId;
+
+    /*
+    The columnDefinition is here because the table column is DECIMAL(4,2)
+    but the Java field is a float, and ddl-auto=validate compares those types.
+    By declaring the column definition explicitly we make sure the Hibernate's validator won't complain
+     */
+    @Column(name = "grade_value", columnDefinition = "decimal(4,2)")
     private float gradeValue;
+
+    protected Grade() { }
 
     public Grade(String studentAm, String courseId, float gradeValue) throws InvalidGradeException
     {

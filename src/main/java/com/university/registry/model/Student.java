@@ -6,13 +6,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-@Entity
-@Table(name = "students")
+@Entity // “This class is stored in a table.”
+@Table(name = "students") // By default, the table would be called student, so we need to specify what the real name is
 public class Student extends Person
 {
-    @Id
-    @Column(name = "am")
+    @Id // “This field is the primary key.”
+    @Column(name = "am") // “The column is called am.”
     private String am;
+
+    // (nothing) The column name defaults to the field name in snake_case, so semester becomes semester and name becomes name.
     private int semester;
 
     protected Student() { }
