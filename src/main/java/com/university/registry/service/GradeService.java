@@ -1,39 +1,42 @@
 package com.university.registry.service;
 
-import com.university.registry.dao.GradeDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.exception.InvalidGradeException;
 import com.university.registry.exception.NoGradesRecordedException;
 import com.university.registry.model.Grade;
+import com.university.registry.model.StudentCourseId;
+import com.university.registry.repository.GradeRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  /**
  * Business-logic layer for grades. Verifies that the student and course
  * exist and that the student is enrolled before recording a grade,
  * rejects duplicates, and refuses to compute an average when no grades exist.
- * Delegates all storage to {@link GradeDAO}.
+ * Delegates all storage to {@link GradeRepository}.
  * <p>
  * All these exceptions are checked, so methods declare them with {@code throws}.
  * Database failures surface separately as the unchecked
  * {@code DataAccessException}.
  */
-
+@Service
 public class GradeService
 {
     private final StudentService studentService;
     private final CourseService courseService;
     private final EnrollmentService enrollmentService; // to record grades only for student that are enrolled in courses
-    private final GradeDAO gradeDAO;
+    private final GradeRepository gradeRepository;
 
-    public GradeService(StudentService studentService, CourseService courseService, EnrollmentService enrollmentService, GradeDAO gradeDAO)
+    public GradeService(StudentService studentService, CourseService courseService, EnrollmentService enrollmentService, GradeRepository gradeRepository)
     {
         this.studentService = studentService;
         this.courseService = courseService;
         this.enrollmentService = enrollmentService;
-        this.gradeDAO = gradeDAO;
+        this.gradeRepository = gradeRepository;
     }
 
     /**
@@ -57,16 +60,16 @@ public class GradeService
             throw new EntityNotFoundException("Εγγραφή", studentAm + "-" + courseId);
         }
 
-        if (gradeDAO.findByStudentAndCourse(studentAm, courseId) != null)
+        if (gradeRepository.existsById(new StudentCourseId(studentAm, courseId)))
         {
             throw new DuplicateEntityException("Βαθμός", studentAm + "-" + courseId);
         }
 
-        gradeDAO.insert(newGrade);
+        gradeRepository.save(newGrade);
     }
 
     /**
-     * Looks for the Grade of a specific Student for a specific Course by calling {@link GradeDAO}'s {@code findByStudentAndCourse()} method.
+     * Looks for the Grade of a specific Student for a specific Course.
      *
      * @param studentAm the Student's am (primary key)
      * @param courseId the Course's id (primary key)
@@ -75,17 +78,17 @@ public class GradeService
      */
     public Grade getGrade(String studentAm, String courseId) throws EntityNotFoundException
     {
-        Grade grade = gradeDAO.findByStudentAndCourse(studentAm, courseId);
-        if (grade == null)
+        Optional<Grade> grade = gradeRepository.findById(new StudentCourseId(studentAm, courseId));
+        if (grade.isEmpty())
         {
             throw new EntityNotFoundException("Βαθμός", studentAm + "-" + courseId);
         }
 
-        return grade;
+        return grade.get();
     }
 
     /**
-     * Calls {@link GradeDAO}'s {@code findByStudent()} method to get the list of all the grades of that Student
+     * Gets the list of all the grades of that Student
      *
      * @param studentAm the Student's am (primary key)
      * @return the list with all the grades
@@ -94,7 +97,7 @@ public class GradeService
     public List<Grade> getGradesForStudent(String studentAm) throws EntityNotFoundException
     {
         studentService.getStudentByAm(studentAm);
-        return gradeDAO.findByStudent(studentAm);
+        return gradeRepository.findByStudentAm(studentAm);
     }
 
     /**
@@ -109,12 +112,12 @@ public class GradeService
     {
         studentService.getStudentByAm(studentAm);
 
-        if (!gradeDAO.hasAnyGradeForStudent(studentAm))
+        if (!gradeRepository.existsByStudentAm(studentAm))
         {
             throw new NoGradesRecordedException("Φοιτητής", studentAm);
         }
 
-        return gradeDAO.findStudentAverage(studentAm);
+        return gradeRepository.findAverageByStudentAm(studentAm).floatValue();
     }
 
     /**
@@ -129,12 +132,12 @@ public class GradeService
     {
         courseService.getCourseById(courseId);
 
-        if (!gradeDAO.hasAnyGradeForCourse(courseId))
+        if (!gradeRepository.existsByCourseId(courseId))
         {
             throw new NoGradesRecordedException("Μάθημα", courseId);
         }
 
-        return gradeDAO.findCourseAverage(courseId);
+        return gradeRepository.findAverageByCourseId(courseId).floatValue();
     }
 
     /**
@@ -146,7 +149,7 @@ public class GradeService
     public void updateGrade(Grade grade) throws EntityNotFoundException
     {
         getGrade(grade.getStudentAm(), grade.getCourseId());
-        gradeDAO.update(grade);
+        gradeRepository.save(grade);
     }
 
     /**
@@ -159,6 +162,6 @@ public class GradeService
     public void deleteGrade(String studentAm, String courseId) throws EntityNotFoundException
     {
         getGrade(studentAm, courseId);
-        gradeDAO.delete(studentAm, courseId);
+        gradeRepository.deleteById(new StudentCourseId(studentAm, courseId));
     }
 }

@@ -1,10 +1,12 @@
 package com.university.registry.service;
 
-import com.university.registry.dao.EnrollmentDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityInUseException;
 import com.university.registry.exception.EntityNotFoundException;
-import com.university.registry.model.Course;
+import com.university.registry.model.*;
+import com.university.registry.repository.ProfessorCoursesRepository;
+import com.university.registry.repository.StudentCoursesRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -14,23 +16,26 @@ import java.util.List;
  * <p>
  * Holds the three entity services (composition) so it can confirm both
  * sides of a relationship exist before writing, and delegates all storage
- * to {@link EnrollmentDAO}. Also owns the "safe delete" operations: only
- * this class can see all three entity types without creating a circular
- * dependency.
+ * to {@link StudentCoursesRepository} and {@link ProfessorCoursesRepository}. Also owns the "safe delete" operations: only
+ * this class can see all three entity types without creating a circular dependency.
  */
+@Service
 public class EnrollmentService
 {
     private final StudentService studentService;
     private final ProfessorService professorService;
     private final CourseService courseService;
-    private final EnrollmentDAO enrollmentDAO;
+    private final StudentCoursesRepository studentCoursesRepository;
+    private final ProfessorCoursesRepository professorCoursesRepository;
 
-    public EnrollmentService(StudentService studentService, ProfessorService professorService, CourseService courseService, EnrollmentDAO enrollmentDAO)
+    public EnrollmentService(StudentService studentService, ProfessorService professorService, CourseService courseService,
+                             StudentCoursesRepository studentCoursesRepository, ProfessorCoursesRepository professorCoursesRepository)
     {
         this.studentService = studentService;
         this.professorService = professorService;
         this.courseService = courseService;
-        this.enrollmentDAO = enrollmentDAO;
+        this.studentCoursesRepository = studentCoursesRepository;
+        this.professorCoursesRepository = professorCoursesRepository;
     }
 
     /**
@@ -46,12 +51,12 @@ public class EnrollmentService
         studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
 
-        if (enrollmentDAO.isStudentEnrolled(studentAm, courseId))
+        if (studentCoursesRepository.existsById(new StudentCourseId(studentAm, courseId)))
         {
             throw new DuplicateEntityException("Εγγραφή", studentAm + "-" + courseId);
         }
 
-        enrollmentDAO.enrollStudent(studentAm, courseId);
+        studentCoursesRepository.save(new StudentCourses(studentAm, courseId));
     }
 
     /**
@@ -67,17 +72,17 @@ public class EnrollmentService
         studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
 
-        if (!enrollmentDAO.isStudentEnrolled(studentAm, courseId))
+        if (!studentCoursesRepository.existsById(new StudentCourseId(studentAm, courseId)))
         {
             throw new EntityNotFoundException("Εγγραφή", studentAm + "-" + courseId);
         }
 
-        if (enrollmentDAO.hasAnyGradeForEnrollment(studentAm, courseId))
+        if (studentCoursesRepository.countGradesFor(studentAm, courseId) > 0)
         {
             throw new EntityInUseException("Εγγραφή", studentAm + "-" + courseId);
         }
 
-        enrollmentDAO.unenrollStudent(studentAm, courseId);
+        studentCoursesRepository.deleteById(new StudentCourseId(studentAm, courseId));
     }
 
     /**
@@ -93,12 +98,12 @@ public class EnrollmentService
         professorService.getProfById(profId);
         courseService.getCourseById(courseId);
 
-        if (enrollmentDAO.isProfessorAssigned(profId, courseId))
+        if (professorCoursesRepository.existsById(new ProfessorCourseId(profId, courseId)))
         {
             throw new DuplicateEntityException("Ανάθεση", profId + "-" + courseId);
         }
 
-        enrollmentDAO.assignProfessor(profId, courseId);
+        professorCoursesRepository.save(new ProfessorCourses(profId, courseId));
     }
 
     /**
@@ -113,12 +118,12 @@ public class EnrollmentService
         professorService.getProfById(profId);
         courseService.getCourseById(courseId);
 
-        if (!enrollmentDAO.isProfessorAssigned(profId, courseId))
+        if (!professorCoursesRepository.existsById(new ProfessorCourseId(profId, courseId)))
         {
             throw new EntityNotFoundException("Ανάθεση", profId + "-" + courseId);
         }
 
-        enrollmentDAO.unassignProfessor(profId, courseId);
+        professorCoursesRepository.deleteById(new ProfessorCourseId(profId, courseId));
     }
 
     /**
@@ -131,7 +136,7 @@ public class EnrollmentService
     public List<Course> getCoursesForStudent(String studentAm) throws EntityNotFoundException
     {
         studentService.getStudentByAm(studentAm);
-        return enrollmentDAO.findCoursesForStudent(studentAm);
+        return studentCoursesRepository.findCoursesForStudent(studentAm);
     }
 
     /**
@@ -144,7 +149,7 @@ public class EnrollmentService
     public List<Course> getCoursesForProfessor(String profId) throws EntityNotFoundException
     {
         professorService.getProfById(profId);
-        return enrollmentDAO.findCoursesForProfessor(profId);
+        return professorCoursesRepository.findCoursesForProfessor(profId);
     }
 
     /**
@@ -158,7 +163,7 @@ public class EnrollmentService
     {
         studentService.getStudentByAm(studentAm);
 
-        if (enrollmentDAO.hasAnyEnrollmentForStudent(studentAm))
+        if (studentCoursesRepository.existsByStudentAm(studentAm))
         {
             throw new EntityInUseException("Φοιτητής", studentAm);
         }
@@ -177,7 +182,7 @@ public class EnrollmentService
     {
         professorService.getProfById(profId);
 
-        if (enrollmentDAO.hasAnyAssignmentForProfessor(profId))
+        if (professorCoursesRepository.existsByProfId(profId))
         {
             throw new EntityInUseException("Καθηγητής", profId);
         }
@@ -196,7 +201,7 @@ public class EnrollmentService
     {
         courseService.getCourseById(courseId);
 
-        if (enrollmentDAO.hasAnyEnrollmentForCourse(courseId) || enrollmentDAO.hasAnyAssignmentForCourse(courseId))
+        if (studentCoursesRepository.existsByCourseId(courseId) || professorCoursesRepository.existsByCourseId(courseId))
         {
             throw new EntityInUseException("Μάθημα", courseId);
         }
@@ -205,8 +210,7 @@ public class EnrollmentService
     }
 
     /**
-     * Checks if a Student is enrolled in a specific Course by calling  {@link EnrollmentDAO}'s
-     * {@link isStudentEnrolled} method
+     * Checks if a Student is enrolled in a specific Course.
      *
      * @param studentAm the Student's am
      * @param courseId the Course's id
@@ -214,6 +218,6 @@ public class EnrollmentService
      */
     public boolean isStudentEnrolled(String studentAm, String courseId)
     {
-        return enrollmentDAO.isStudentEnrolled(studentAm, courseId);
+        return studentCoursesRepository.existsById(new StudentCourseId(studentAm, courseId));
     }
 }

@@ -1,11 +1,13 @@
 package com.university.registry.service;
 
-import com.university.registry.dao.CourseDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Course;
+import com.university.registry.repository.CourseRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Business-logic layer for {@link Course} objects.
@@ -13,46 +15,44 @@ import java.util.Collection;
  * Decides what the stored data means (a missing row becomes an
  * {@link EntityNotFoundException}, an existing row on insert becomes a
  * {@link DuplicateEntityException}) and delegates all actual storage to
- * {@link CourseDAO}. Holds no data itself.
+ * {@link CourseRepository}. Holds no data itself.
  * <p>
  * Both exceptions are checked, so methods declare them with {@code throws}.
  * Database failures surface separately as the unchecked
  * {@code DataAccessException}.
  */
+@Service
 public class CourseService
 {
-    private final CourseDAO courseDAO;
+    private final CourseRepository courseRepository;
 
     /**
      *
-     * @param courseDAO is the Data Access Object for the {@code courses} table
-     *                   which is being injected via this constructor, because
-     *                   {@code CourseService} needs access to its methods.
+     * @param courseRepository is the Interface Spring Data JPA uses to generate the implementation class.
      */
-    public CourseService(CourseDAO courseDAO)
+    public CourseService(CourseRepository courseRepository)
     {
-
-        this.courseDAO = courseDAO;
+        this.courseRepository = courseRepository;
     }
 
     /**
-     * Adds a new Course to the database by calling {@link CourseDAO}'s {@code insert()} method.
+     * Adds a new Course to the database.
      *
      * @param course the course to be added assumed already validated before being passed here
      * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (courseId)
      */
     public void addCourse(Course course) throws DuplicateEntityException
     {
-        if (courseDAO.findById(course.getCourseId()) != null)
+        if (courseRepository.existsById(course.getCourseId()))
         {
             throw new DuplicateEntityException("Μάθημα", course.getCourseId());
         }
 
-        courseDAO.insert(course);
+        courseRepository.save(course);
     }
 
     /**
-     * Looks up for a specific Course by its id by calling {@link CourseDAO}'s {@code findById()} method.
+     * Looks up for a specific Course by its id.
      *
      * @param id the Course's id (primary key)
      * @return the matching course
@@ -60,31 +60,29 @@ public class CourseService
      */
     public Course getCourseById(String id) throws EntityNotFoundException
     {
-        Course course = courseDAO.findById(id);
-        if (course == null)
+        Optional<Course> course = courseRepository.findById(id);
+        if (course.isEmpty())
         {
             throw new EntityNotFoundException("Μάθημα", id);
         }
 
-        return course;
+        return course.get();
     }
 
     /**
-     * Updates the {@link Course} that's being passed as a parameter by calling {@link CourseDAO}'s
-     * {@code update()} method, after first verifying its existence with {@code getCourseById()}.
+     * Updates the Course that's being passed as a parameter after first verifying its existence.
      *
-     * @param updatedCourse the {@link Course} to be updated
+     * @param updatedCourse the Course to be updated
      * @throws EntityNotFoundException if the Course isn't found in the database
      */
     public void updateCourse(Course updatedCourse) throws EntityNotFoundException
     {
         getCourseById(updatedCourse.getCourseId());
-        courseDAO.update(updatedCourse);
+        courseRepository.save(updatedCourse);
     }
 
     /**
-     * Deletes the {@link Course} matching the given id by calling {@link CourseDAO}'s
-     * {@code deleteById()} method, after first verifying its existence with {@code getCourseById()}.
+     * Deletes the Course matching the given id after first verifying its existence.
      *
      * @param id the identifier of the Course that's going to be deleted
      * @throws EntityNotFoundException if the Course isn't found in the database
@@ -92,16 +90,16 @@ public class CourseService
     public void deleteCourse(String id) throws EntityNotFoundException
     {
         getCourseById(id);
-        courseDAO.deleteById(id);
+        courseRepository.deleteById(id);
     }
 
     /**
-     * Calls {@link CourseDAO}'s {@code findAll()} method to get the list of all the Course
+     * Gets the list of all the Course
      * objects stored in the database.
      * @return a collection holding all the courses
      */
     public Collection<Course> getAllCourses()
     {
-        return courseDAO.findAll();
+        return courseRepository.findAll();
     }
 }

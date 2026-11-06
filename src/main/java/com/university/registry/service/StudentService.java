@@ -1,11 +1,13 @@
 package com.university.registry.service;
 
-import com.university.registry.dao.StudentDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Student;
+import com.university.registry.repository.StudentRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Business-logic layer for {@link Student} objects.
@@ -13,45 +15,50 @@ import java.util.Collection;
  * Decides what the stored data means (a missing row becomes an
  * {@link EntityNotFoundException}, an existing row on insert becomes a
  * {@link DuplicateEntityException}) and delegates all actual storage to
- * {@link StudentDAO}. Holds no data itself.
+ * {@link StudentRepository}. Holds no data itself.
  * <p>
  * Both exceptions are checked, so methods declare them with {@code throws}.
  * Database failures surface separately as the unchecked
  * {@code DataAccessException}.
  */
+@Service
 public class StudentService
 {
-    private final StudentDAO studentDAO;
-
+    private final StudentRepository studentRepository;
     /**
      *
-     * @param studentDAO is the Data Access Object for the {@code students} table
-     *                   which is being injected via this constructor, because
-     *                   {@code StudentService} needs access to its methods
+     * @param studentRepository is the Interface Spring Data JPA uses to generate the implementation class (JdbcStudentDAO),
+     *                          which was the class with the SQL queries that communicated with the database.
+     *                          Now, with the runtime scope dependency, the driver is needed when the program runs
+     *                          and that's how everything talks to the database now (interfaces only), without the need
+     *                          of manually writing the SQL and the mapping code.
+     *                          <p></p>
+     *                          Java automates this with ORM (object-relational-mapping) utilizing the JPA (Jakarta Persistence)
+     *                          API, implemented its database actions by a tool like Hibernate.
      */
-    public StudentService(StudentDAO studentDAO)
+    public StudentService(StudentRepository studentRepository)
     {
-        this.studentDAO = studentDAO;
+        this.studentRepository = studentRepository;
     }
 
     /**
-     * Adds a new Student to the database by calling {@link StudentDAO}'s {@code insert()} method.
+     * Adds a new Student to the database after a duplication check.
      *
      * @param student the student to be added assumed already validated before being passed here
      * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (am)
      */
     public void addStudent(Student student) throws DuplicateEntityException
     {
-        if (studentDAO.findByAm(student.getAm()) != null)
+        if (studentRepository.existsById(student.getAm()))
         {
             throw new DuplicateEntityException("Φοιτητής", student.getAm());
         }
 
-        studentDAO.insert(student);
+        studentRepository.save(student);
     }
 
     /**
-     * Looks up for a specific Student by its am by calling {@link StudentDAO}'s {@code findByAm()} method.
+     * Looks up for a specific Student by its am.
      *
      * @param am the Student's am (primary key)
      * @return the matching Student
@@ -59,18 +66,17 @@ public class StudentService
      */
     public Student getStudentByAm(String am) throws EntityNotFoundException
     {
-        Student student = studentDAO.findByAm(am);
-        if (student == null)
+        Optional<Student> student = studentRepository.findById(am);
+        if (student.isEmpty())
         {
             throw new EntityNotFoundException("Φοιτητής", am);
         }
 
-        return student;
+        return student.get();
     }
 
     /**
-     * Updates the Student that's being passed as a parameter by calling {@link StudentDAO}'s
-     * {@code update()} method, after first verifying its existence with {@code getStudentByAm()}.
+     * Updates the Student that's being passed as a parameter after first verifying its existence.
      *
      * @param updatedStudent the Student to be updated
      * @throws EntityNotFoundException if the Student isn't found in the database
@@ -78,12 +84,11 @@ public class StudentService
     public void updateStudent(Student updatedStudent) throws EntityNotFoundException
     {
         getStudentByAm(updatedStudent.getAm());
-        studentDAO.update(updatedStudent);
+        studentRepository.save(updatedStudent);
     }
 
     /**
-     * Deletes the Student matching the given am by calling {@link StudentDAO}'s
-     * {@code deleteByAm()} method, after first verifying its existence with {@code getStudentByAm()}.
+     * Deletes the Student matching the given am after first verifying its existence.
      *
      * @param am the identifier of the Student that's going to be deleted
      * @throws EntityNotFoundException if the Student isn't found in the database
@@ -91,17 +96,17 @@ public class StudentService
     public void deleteStudent(String am) throws EntityNotFoundException
     {
         getStudentByAm(am);
-        studentDAO.deleteByAm(am);
+        studentRepository.deleteById(am);
     }
 
     /**
-     * Calls {@link StudentDAO}'s {@code findAll()} method to get the list of all the Student
+     * Gets the list of all the Student
      * objects stored in the database.
      *
      * @return a collection holding all the students
      */
     public Collection<Student> getAllStudents()
     {
-        return studentDAO.findAll();
+        return studentRepository.findAll();
     }
 }
