@@ -25,8 +25,6 @@
 
     <properties>
         <java.version>21</java.version>
-        <!-- two classes have a main method for now (the console Main and the Spring one) -->
-        <start-class>com.university.registry.RegistryApplication</start-class>
     </properties>
 
     <dependencies>
@@ -41,10 +39,9 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- no <version>: the parent picks the one that matches Spring Boot -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
