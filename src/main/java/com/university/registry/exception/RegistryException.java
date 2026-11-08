@@ -19,7 +19,7 @@ package com.university.registry.exception;
  *
  * This class and it's subclasses represent domain rule violations (things my own validation logic decides to reject).
  */
-public abstract class RegistryException extends Exception
+public abstract class RegistryException extends RuntimeException
 {
     // Χρησιμοποιούμε το protected access modifier ώστε μόνο οι subclasses της RegistryException να μπορούν να καλέσουν τον constructor της μέσω του super
     protected RegistryException(String message)

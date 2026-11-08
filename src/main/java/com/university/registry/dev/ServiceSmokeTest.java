@@ -7,7 +7,6 @@ import com.university.registry.service.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-@Component
 public class ServiceSmokeTest implements CommandLineRunner
 {
     private final StudentService studentService;
