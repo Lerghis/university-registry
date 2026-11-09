@@ -49,6 +49,7 @@ public class StudentController
     {
         Student student = new Student(request.am(), request.semester(), request.name(), request.email(), request.phone());
         studentService.addStudent(student);
+
         return StudentResponse.from(student);
     }
 
@@ -57,6 +58,7 @@ public class StudentController
     {
         Student student = new Student(am, request.semester(), request.name(), request.email(), request.phone());
         studentService.updateStudent(student);
+
         return StudentResponse.from(student);
     }
 
