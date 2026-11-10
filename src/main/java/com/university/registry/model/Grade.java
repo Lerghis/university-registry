@@ -38,7 +38,7 @@ public class Grade
 
     public void setStudentAm(String studentAm)
     {
-        this.studentAm = studentAm;
+        this.studentAm = studentAm.trim();
     }
 
     public String getCourseId()
@@ -48,7 +48,7 @@ public class Grade
 
     public void setCourseId(String courseId)
     {
-        this.courseId = courseId;
+        this.courseId = courseId.trim();
     }
 
     public float getGradeValue()
