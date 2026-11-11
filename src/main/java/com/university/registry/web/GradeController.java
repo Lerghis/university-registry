@@ -1,11 +1,11 @@
 package com.university.registry.web;
 
 import com.university.registry.model.Grade;
-import com.university.registry.service.EnrollmentService;
 import com.university.registry.service.GradeService;
 import com.university.registry.web.dto.GradeRequest;
 import com.university.registry.web.dto.GradeResponse;
 import com.university.registry.web.dto.GradeUpdateRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,17 +16,15 @@ import java.util.List;
 public class GradeController
 {
     private final GradeService gradeService;
-    private final EnrollmentService enrollmentService;
 
-    public GradeController(GradeService gradeService, EnrollmentService enrollmentService)
+    public GradeController(GradeService gradeService)
     {
         this.gradeService = gradeService;
-        this.enrollmentService = enrollmentService;
     }
 
     @PostMapping("/students/{am}/grades")
     @ResponseStatus(HttpStatus.CREATED)
-    public GradeResponse addGrade(@PathVariable String am, @RequestBody GradeRequest request)
+    public GradeResponse addGrade(@PathVariable String am, @Valid @RequestBody GradeRequest request)
     {
         gradeService.recordGrade(am, request.courseId(), request.value());
 
@@ -46,7 +44,7 @@ public class GradeController
     }
 
     @PutMapping("/students/{am}/grades/{courseId}")
-    public GradeResponse updateGrade(@PathVariable String am, @PathVariable String courseId, @RequestBody GradeUpdateRequest request)
+    public GradeResponse updateGrade(@PathVariable String am, @PathVariable String courseId, @Valid @RequestBody GradeUpdateRequest request)
     {
         Grade grade = new Grade(am, courseId, request.value());
         gradeService.updateGrade(grade);

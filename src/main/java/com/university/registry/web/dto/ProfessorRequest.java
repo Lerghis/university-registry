@@ -1,3 +1,12 @@
 package com.university.registry.web.dto;
 
-public record ProfessorRequest(String profId, String specialty, String name, String email, String phone) { }
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record ProfessorRequest(
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 20, message = Messages.TOO_LONG) String profId,
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 100, message = Messages.TOO_LONG) String specialty,
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 100, message = Messages.TOO_LONG) String name,
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 100, message = Messages.TOO_LONG) String email,
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 20, message = Messages.TOO_LONG) String phone)
+{ }

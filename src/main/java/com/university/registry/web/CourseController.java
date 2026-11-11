@@ -6,7 +6,7 @@ import com.university.registry.service.EnrollmentService;
 import com.university.registry.web.dto.CourseRequest;
 import com.university.registry.web.dto.CourseResponse;
 import com.university.registry.web.dto.CourseUpdateRequest;
-import org.apache.logging.log4j.message.StringFormattedMessage;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,7 +46,7 @@ public class CourseController
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CourseResponse create(@RequestBody CourseRequest request)
+    public CourseResponse create(@Valid  @RequestBody CourseRequest request)
     {
         Course course = new Course(request.courseId(), request.courseTitle(), request.courseSemester());
         courseService.addCourse(course);
@@ -55,7 +55,7 @@ public class CourseController
     }
 
     @PutMapping("/{courseId}")
-    public CourseResponse update(@PathVariable String courseId, @RequestBody CourseUpdateRequest request)
+    public CourseResponse update(@PathVariable String courseId, @Valid @RequestBody CourseUpdateRequest request)
     {
         Course course = new Course(courseId, request.courseTitle(), request.courseSemester());
         courseService.updateCourse(course);

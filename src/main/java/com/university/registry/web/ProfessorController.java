@@ -6,6 +6,7 @@ import com.university.registry.service.ProfessorService;
 import com.university.registry.web.dto.ProfessorRequest;
 import com.university.registry.web.dto.ProfessorResponse;
 import com.university.registry.web.dto.ProfessorUpdateRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class ProfessorController
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProfessorResponse create(@RequestBody ProfessorRequest request)
+    public ProfessorResponse create(@Valid  @RequestBody ProfessorRequest request)
     {
         Professor professor = new Professor(request.profId(), request.specialty(), request.name(), request.email(), request.phone());
         professorService.addProfessor(professor);
@@ -54,7 +55,7 @@ public class ProfessorController
     }
 
     @PutMapping("/{profId}")
-    public ProfessorResponse update(@PathVariable String profId, @RequestBody ProfessorUpdateRequest request)
+    public ProfessorResponse update(@PathVariable String profId, @Valid @RequestBody ProfessorUpdateRequest request)
     {
         Professor professor = new Professor(profId, request.specialty(), request.name(), request.email(), request.phone());
         professorService.updateProfessor(professor);

@@ -1,3 +1,9 @@
 package com.university.registry.web.dto;
 
-public record CourseUpdateRequest(String courseTitle, int courseSemester) { }
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record CourseUpdateRequest(
+        @NotBlank(message = Messages.REQUIRED) @Size(max = 150, message = Messages.TOO_LONG) String courseTitle,
+        int courseSemester)
+{ }

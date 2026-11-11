@@ -6,6 +6,7 @@ import com.university.registry.service.StudentService;
 import com.university.registry.web.dto.StudentRequest;
 import com.university.registry.web.dto.StudentResponse;
 import com.university.registry.web.dto.StudentUpdateRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class StudentController
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public StudentResponse create(@RequestBody StudentRequest request)
+    public StudentResponse create(@Valid @RequestBody StudentRequest request)
     {
         Student student = new Student(request.am(), request.semester(), request.name(), request.email(), request.phone());
         studentService.addStudent(student);
@@ -54,7 +55,7 @@ public class StudentController
     }
 
     @PutMapping("/{am}")
-    public StudentResponse update(@PathVariable String am, @RequestBody StudentUpdateRequest request)
+    public StudentResponse update(@PathVariable String am, @Valid @RequestBody StudentUpdateRequest request)
     {
         Student student = new Student(am, request.semester(), request.name(), request.email(), request.phone());
         studentService.updateStudent(student);
