@@ -1,56 +1,66 @@
 package com.university.registry.service;
 
-import com.university.registry.dao.InMemoryStudentDAO;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Student;
+import com.university.registry.repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.*;
 
 public class StudentServiceTest
 {
-    private StudentService service;
+    private StudentRepository studentRepository;
+    private StudentService studentService;
 
     @BeforeEach
     void setup()
     {
-        service = new StudentService(new InMemoryStudentDAO());
+        studentRepository = mock(StudentRepository.class);
+        studentService = new StudentService(studentRepository);
     }
 
     @Test
-    void addStudent_withNewAm_canBeFoundAfterwards() throws Exception
+    void addStudent_withNewAm_savesStudent() throws Exception
     {
-        Student student = new Student("AM1", 1, "Maria", "m@x.gr", "100");
+        Student newStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
+        when(studentRepository.existsById("AM1")).thenReturn(false);
 
-        service.addStudent(student);
+        studentService.addStudent(newStudent);
 
-        assertEquals("Maria", service.getStudentByAm("AM1").getName());
+        verify(studentRepository, times(1)).save(newStudent);
     }
 
     @Test
     void addStudent_withExistingAm_throwsDuplicateEntityException() throws Exception
     {
-        service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
+        when(studentRepository.existsById("AM1")).thenReturn(true); // program the mock
 
         try
         {
-            service.addStudent(new Student("AM1", 2, "Nikos", "n@x.gr", "200"));
+            studentService.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
             fail("Expected a DuplicateEntityException but nothing was thrown");
         }
         catch (DuplicateEntityException ex)
         {
-            // expected: the test passes
+            verify(studentRepository, never()).save(any()); // nothing may be saved
         }
     }
 
     @Test
     void getStudentByAm_whenMissing_throwsEntityNotFoundException()
     {
+        when(studentRepository.findById("AM1")).thenReturn(Optional.empty());
+
         try
         {
-            service.getStudentByAm("AM1");
+            studentService.getStudentByAm("AM1");
             fail("Expected an EntityNotFoundException but nothing was thrown");
         }
         catch (EntityNotFoundException ex)
@@ -62,63 +72,70 @@ public class StudentServiceTest
     @Test
     void updateStudent_whenMissing_throwsEntityNotFoundException() throws Exception
     {
-        Student student = new Student("AM1", 1, "Maria", "m@x.gr", "100");
+        when(studentRepository.findById("AM1")).thenReturn(Optional.empty());
 
         try
         {
-            service.updateStudent(student);
+            studentService.updateStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
             fail("Expected an EntityNotFoundException but nothing was thrown");
         }
         catch (EntityNotFoundException ex)
         {
-            // expected: the test passes
+            verify(studentRepository, never()).save(any());
         }
     }
 
     @Test
     void updateStudent_whenExists_changesTheStoredValues() throws Exception
     {
-        service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
+        Student existingStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
+        Student newInfo = new Student("AM1", 1, "Eleni", "e@x.gr", "200");
 
-        service.updateStudent(new Student("AM1", 1, "Eleni", "e@x.gr", "200"));   // a DIFFERENT object, same AM
+        // Tells the mock repo that "AM1" exists so getStudentByAm() doesn't throw an exception
+        when(studentRepository.findById("AM1")).thenReturn(Optional.of(existingStudent));
 
-        assertEquals("Eleni", service.getStudentByAm("AM1").getName());
+        studentService.updateStudent(newInfo);
+
+        // VERIFY: Prove that save() was called specifically with 'newInfo'
+        verify(studentRepository, times(1)).save(newInfo);
     }
 
     @Test
-    void deleteStudent_whenMissing_throwsEntityNotFoundException()
+    void deleteStudent_whenMissing_throwsEntityNotFoundException() throws Exception
     {
+        when(studentRepository.findById("AM1")).thenReturn(Optional.empty());
+
         try
         {
-            service.deleteStudent("AM1");
+            studentService.deleteStudent("AM1");
             fail("Expected an EntityNotFoundException but nothing was thrown");
         }
         catch (EntityNotFoundException ex)
         {
-            // expected: the test passes
+            verify(studentRepository, never()).deleteById(any());
         }
     }
 
     @Test
     void deleteStudent_whenExists_removesIt() throws Exception
     {
-        service.addStudent(new Student("AM1", 1, "Maria", "m@x.gr", "100"));
-        service.deleteStudent("AM1");
+        Student existingStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
+        when(studentRepository.findById("AM1")).thenReturn(Optional.of(existingStudent));
 
-        try
-        {
-            service.getStudentByAm("AM1");
-            fail("Expected an EntityNotFoundException but nothing was thrown");
-        }
-        catch (EntityNotFoundException ex)
-        {
-            // expected: the test passes
-        }
+        studentService.deleteStudent("AM1");
+
+        verify(studentRepository, times(1)).deleteById("AM1");
     }
 
     @Test
     void getAllStudents_whenEmpty_returnsAnEmptyCollection()
     {
-        assertTrue(service.getAllStudents().isEmpty());
+        when(studentRepository.findAll()).thenReturn(List.of());
+
+        boolean isEmpty = studentService.getAllStudents().isEmpty();
+
+        assertTrue(isEmpty);
+
+        verify(studentRepository, times(1)).findAll();
     }
 }

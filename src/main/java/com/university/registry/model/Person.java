@@ -1,10 +1,15 @@
 package com.university.registry.model;
 
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass // “Person is not a table. Its fields (name, email, phone) become columns in the table of every subclass.”
 public class Person
 {
     protected String name;
     protected String email;
     protected String phone;
+
+    protected Person() { }
 
     public Person(String name, String email, String phone)
     {
