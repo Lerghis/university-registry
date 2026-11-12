@@ -11,13 +11,19 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Business-logic layer for relationships between entities: which students
+ * Business-logic layer managing relationships between entities: which students
  * are enrolled in which courses, and which professors teach them.
  * <p>
- * Holds the three entity services (composition) so it can confirm both
- * sides of a relationship exist before writing, and delegates all storage
- * to {@link StudentCoursesRepository} and {@link ProfessorCoursesRepository}. Also owns the "safe delete" operations: only
- * this class can see all three entity types without creating a circular dependency.
+ * Composes {@link StudentService}, {@link ProfessorService}, and {@link CourseService}
+ * to verify that both sides of a relationship exist before writing, and delegates
+ * relationship persistence to {@link StudentCoursesRepository} and
+ * {@link ProfessorCoursesRepository}. It also centralizes "safe delete" operations,
+ * preventing deletion of entities that still have active enrollments or assignments
+ * without introducing circular dependencies among the core entity services.
+ * <p>
+ * All domain exceptions thrown or propagated by this service are unchecked and
+ * handled globally by the application's {@code @RestControllerAdvice} handler, while
+ * database failures surface as Spring's unchecked {@code DataAccessException}.
  */
 @Service
 public class EnrollmentService
@@ -28,6 +34,15 @@ public class EnrollmentService
     private final StudentCoursesRepository studentCoursesRepository;
     private final ProfessorCoursesRepository professorCoursesRepository;
 
+    /**
+     * Constructs an {@code EnrollmentService} with all required entity services and relationship repositories.
+     *
+     * @param studentService             the service used to validate and manage {@link Student} entities
+     * @param professorService           the service used to validate and manage {@link Professor} entities
+     * @param courseService              the service used to validate and manage {@link Course} entities
+     * @param studentCoursesRepository   the repository managing student-course enrollments
+     * @param professorCoursesRepository the repository managing professor-course assignments
+     */
     public EnrollmentService(StudentService studentService, ProfessorService professorService, CourseService courseService,
                              StudentCoursesRepository studentCoursesRepository, ProfessorCoursesRepository professorCoursesRepository)
     {
@@ -39,14 +54,14 @@ public class EnrollmentService
     }
 
     /**
-     * Enrolls a student in a course.
+     * Enrolls a student in a course after verifying that both exist and are not already linked.
      *
      * @param studentAm the student's AM
-     * @param courseId  the course's id
-     * @throws EntityNotFoundException  if the student or the course doesn't exist
-     * @throws DuplicateEntityException if the student is already enrolled in it
+     * @param courseId  the course's ID
+     * @throws EntityNotFoundException  if either the student or the course does not exist
+     * @throws DuplicateEntityException if the student is already enrolled in the course
      */
-    public void enrollStudentToCourse(String studentAm, String courseId) throws EntityNotFoundException, DuplicateEntityException
+    public void enrollStudentToCourse(String studentAm, String courseId)
     {
         studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
@@ -60,14 +75,14 @@ public class EnrollmentService
     }
 
     /**
-     * Unenrolls a student from a course.
+     * Unenrolls a student from a course after verifying the enrollment exists and has no recorded grades.
      *
      * @param studentAm the student's AM
-     * @param courseId the course's id
-     * @throws EntityNotFoundException if the student or the course doesn't exist
-     * @throws EntityInUseException if the student is graded for that enrollment
+     * @param courseId  the course's ID
+     * @throws EntityNotFoundException if the student, the course, or the enrollment record does not exist
+     * @throws EntityInUseException    if the student already has recorded grades for this course
      */
-    public void unenrollStudent(String studentAm, String courseId) throws EntityNotFoundException, EntityInUseException
+    public void unenrollStudent(String studentAm, String courseId)
     {
         studentService.getStudentByAm(studentAm);
         courseService.getCourseById(courseId);
@@ -86,14 +101,14 @@ public class EnrollmentService
     }
 
     /**
-     * Assigns a professor in a course.
+     * Assigns a professor to teach a course after verifying that both exist and are not already linked.
      *
-     * @param profId the professor's id
-     * @param courseId  the course's id
-     * @throws EntityNotFoundException  if the professor or the course doesn't exist
-     * @throws DuplicateEntityException if the professor is already assigned in it
+     * @param profId   the professor's ID
+     * @param courseId the course's ID
+     * @throws EntityNotFoundException  if either the professor or the course does not exist
+     * @throws DuplicateEntityException if the professor is already assigned to the course
      */
-    public void assignCourseToProfessor(String profId, String courseId) throws EntityNotFoundException, DuplicateEntityException
+    public void assignCourseToProfessor(String profId, String courseId)
     {
         professorService.getProfById(profId);
         courseService.getCourseById(courseId);
@@ -107,13 +122,13 @@ public class EnrollmentService
     }
 
     /**
-     * Unassigns a professor from a course.
+     * Unassigns a professor from a course after verifying that the assignment exists.
      *
-     * @param profId the professor's id
-     * @param courseId  the course's id
-     * @throws EntityNotFoundException  if the professor or the course or the assignment doesn't exist
+     * @param profId   the professor's ID
+     * @param courseId the course's ID
+     * @throws EntityNotFoundException if the professor, the course, or the assignment record does not exist
      */
-    public void unassignProfessor(String profId, String courseId) throws EntityNotFoundException
+    public void unassignProfessor(String profId, String courseId)
     {
         professorService.getProfById(profId);
         courseService.getCourseById(courseId);
@@ -127,39 +142,39 @@ public class EnrollmentService
     }
 
     /**
-     * Gets all the courses a student is enrolled to.
+     * Retrieves all courses a student is currently enrolled in.
      *
      * @param studentAm the student's AM
-     * @return the list with courses
-     * @throws EntityNotFoundException if the student doesn't exist
+     * @return a list of {@link Course} objects the student is enrolled in
+     * @throws EntityNotFoundException if no student exists with the given AM
      */
-    public List<Course> getCoursesForStudent(String studentAm) throws EntityNotFoundException
+    public List<Course> getCoursesForStudent(String studentAm)
     {
         studentService.getStudentByAm(studentAm);
         return studentCoursesRepository.findCoursesForStudent(studentAm);
     }
 
     /**
-     * Gets all the courses a professor is assigned to.
+     * Retrieves all courses assigned to a specific professor.
      *
-     * @param profId the professor's id
-     * @return the list with courses
-     * @throws EntityNotFoundException if the professor doesn't exist
+     * @param profId the professor's ID
+     * @return a list of {@link Course} objects assigned to the professor
+     * @throws EntityNotFoundException if no professor exists with the given ID
      */
-    public List<Course> getCoursesForProfessor(String profId) throws EntityNotFoundException
+    public List<Course> getCoursesForProfessor(String profId)
     {
         professorService.getProfById(profId);
         return professorCoursesRepository.findCoursesForProfessor(profId);
     }
 
     /**
-     * Deletes a student only if no enrollment references them.
+     * Deletes a student only if they have no active course enrollments.
      *
      * @param studentAm the AM of the student to delete
-     * @throws EntityNotFoundException if the student doesn't exist
-     * @throws EntityInUseException    if the student is enrolled in any course
+     * @throws EntityNotFoundException if no student exists with the given AM
+     * @throws EntityInUseException    if the student is still enrolled in one or more courses
      */
-    public void deleteStudentSafely(String studentAm) throws EntityNotFoundException, EntityInUseException
+    public void deleteStudentSafely(String studentAm)
     {
         studentService.getStudentByAm(studentAm);
 
@@ -172,13 +187,13 @@ public class EnrollmentService
     }
 
     /**
-     * Deletes a student only if no assignment references them.
+     * Deletes a professor only if they have no active course assignments.
      *
-     * @param profId the id of the professor to delete
-     * @throws EntityNotFoundException if the professor doesn't exist
-     * @throws EntityInUseException    if the professor is assigned in any course
+     * @param profId the ID of the professor to delete
+     * @throws EntityNotFoundException if no professor exists with the given ID
+     * @throws EntityInUseException    if the professor is still assigned to one or more courses
      */
-    public void deleteProfessorSafely(String profId) throws EntityNotFoundException, EntityInUseException
+    public void deleteProfessorSafely(String profId)
     {
         professorService.getProfById(profId);
 
@@ -191,13 +206,13 @@ public class EnrollmentService
     }
 
     /**
-     * Deletes a course only if no assignment references them.
+     * Deletes a course only if no students are enrolled in it and no professors are assigned to it.
      *
-     * @param courseId the id of the course to delete
-     * @throws EntityNotFoundException if the course doesn't exist
-     * @throws EntityInUseException    if there are any enrollments or assignments referencing this course
+     * @param courseId the ID of the course to delete
+     * @throws EntityNotFoundException if no course exists with the given ID
+     * @throws EntityInUseException    if the course still has enrolled students or assigned professors
      */
-    public void deleteCourseSafely(String courseId) throws EntityNotFoundException, EntityInUseException
+    public void deleteCourseSafely(String courseId)
     {
         courseService.getCourseById(courseId);
 
@@ -210,11 +225,11 @@ public class EnrollmentService
     }
 
     /**
-     * Checks if a Student is enrolled in a specific Course.
+     * Checks whether a student is enrolled in a specific course.
      *
-     * @param studentAm the Student's am
-     * @param courseId the Course's id
-     * @return true if the Student is enrolled, false if it isn't
+     * @param studentAm the student's AM
+     * @param courseId  the course's ID
+     * @return {@code true} if the student is enrolled in the course, or {@code false} otherwise
      */
     public boolean isStudentEnrolled(String studentAm, String courseId)
     {

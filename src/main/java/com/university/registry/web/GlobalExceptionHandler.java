@@ -15,6 +15,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Turns exceptions into HTTP responses for every controller, in one place.
+ * <p>
+ * Domain errors map to 404, 409 or 400 and carry their own user-facing
+ * message. Database failures answer 500 with a generic message; the details
+ * go to the log.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler
 {

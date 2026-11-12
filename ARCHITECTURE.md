@@ -1,273 +1,173 @@
 # Architecture & Design Notes
 
-Internal reference documenting the *why* behind this project's structure.
-Written for myself, to understand the codebase rather than just having
-written it. Updated as each layer is added.
+Internal reference for the *why* behind this project. Updated for the REST API version (tag `v0.4-rest-api`).
 
-## 1. Why layered architecture
-
-The original CLI prototype had one class (`DataBase`) doing five jobs at
-once: repository, DAO, service, controller, and validator (a "God Object").
-Business logic could not be tested without a keyboard attached, and storage
-could not be swapped without touching UI code. Splitting into layers means
-each package has exactly one reason to change (Single Responsibility
-Principle).
+## 1. The big picture
 
 ```
-UI (console)  ->  Service  ->  DAO  ->  MariaDB
-                    |
-                  Model / Exception (used by every layer)
+Client -> web -> service -> repository -> MariaDB
+          (controllers,     (business     (Spring Data JPA
+           DTOs, handler)    rules)         and Hibernate)
 ```
 
-Each layer talks only to the layer directly below it.
+`model` (entities) and `exception` are shared by every layer. Each layer talks only to the one directly below it and never skips one.
 
-## 2. Layer responsibilities
+The project was built in stages on purpose, and each stage is a git tag:
 
-| Package | Responsibility | Must NOT contain |
-|---|---|---|
-| `model` | Plain data + self-validation (constructors/setters throw on invalid state): `Person`, `Student`, `Professor`, `Course`, `Grade`, `StudentCourses`, `ProfessorCourses` | SQL, I/O, rules about *other* entities |
-| `exception` | The exception hierarchy (see section 6) | Logic |
-| `dao` | Translate between objects and table rows via JDBC. One class per table (`EnrollmentDAO` owns both join tables). | Business rules, input/output |
-| `service` | Business rules: existence checks, duplicate checks, cross-entity coordination. Hold no data. | SQL, `Scanner`/`System.out` |
-| `ui` | Console menus: read input, call services, display results and errors. (in progress) | SQL, business rules |
-| `util` | `DataSourceFactory`: builds the single HikariCP connection pool from `db.properties` | Business logic |
-
-## 3. Object graph and construction order
-
-`Main` is the one place where objects are created and wired together
-(a *composition root*). Order matters because each object needs the ones
-before it:
-
-1. `DataSourceFactory`
-2. `JdbcStudentDAO`, `ProfessorDAO`, `CourseDAO`, `GradeDAO` (need only the factory)
-3. `EnrollmentDAO` (factory + `CourseDAO`, to reuse row mapping)
-4. `StudentService`, `ProfessorService`, `CourseService` (one DAO each)
-5. `EnrollmentService` (the three entity services + `EnrollmentDAO`)
-6. `GradeService` (student, course, enrollment services + `GradeDAO`)
-
-Dependency arrows only ever point one way; there are no cycles
-(Acyclic Dependencies Principle). This is also *why* the "safe delete"
-methods (`deleteStudentSafely`, `deleteCourseSafely`, ...) live in
-`EnrollmentService`: it already depends on all three entity services, so
-putting that logic inside `CourseService` would need a `CourseService ->
-EnrollmentService` arrow, closing a cycle that cannot even be constructed
-in Java.
-
-## 4. DAO vs service: facts vs decisions
-
-The DAO reports **facts**; the service decides what they **mean**.
-
-| DAO reports (fact) | Service decides (rule) |
+| Tag | State |
 |---|---|
-| `findByAM` returned `null` | `null` becomes `EntityNotFoundException` |
-| `isStudentEnrolled` returned `true` | on enroll, `true` becomes `DuplicateEntityException` |
-| `hasAnyGradeForStudent` returned `false` | becomes `NoGradesRecordedException` |
-| `hasAnyEnrollmentForStudent` returned `true` | becomes `EntityInUseException` |
+| `v0.1-in-memory-services` | Services backed by `HashMap` / `List` |
+| `v0.2-services-use-daos` | Hand-written JDBC DAOs and HikariCP |
+| `v0.3-console-ui` | Complete console application |
+| `v0.4-rest-api` | Spring Boot REST API (this version) |
 
-A DAO never throws a business exception, and a service never writes SQL.
+Writing each layer by hand first is what makes the framework understandable: every Spring feature replaces something that was written manually before.
 
-Precondition worth remembering: `GradeDAO.findStudentAverage` must only be
-called after `hasAnyGradeForStudent`. SQL's `AVG` over zero rows yields
-`NULL`, which JDBC's `getFloat` silently turns into `0.0`, indistinguishable
-from a real average of zero. The service performs that check first.
+## 2. Layers
+
+| Package | Responsibility | Must not contain |
+|---|---|---|
+| `model` | Domain classes and JPA entities, with self-validation (constructors and setters throw on invalid state) | SQL, HTTP, rules about other entities |
+| `exception` | The domain exception hierarchy (section 6) | Logic |
+| `repository` | Spring Data interfaces; they report facts about stored data | Business rules |
+| `service` | Business rules: existence checks, duplicate checks, safe deletes, averages | SQL, HTTP, DTOs |
+| `web` | Controllers (thin translators) and `GlobalExceptionHandler` | Business rules, repositories |
+| `web.dto` | Request and response records: the API's own shape | Logic beyond mapping |
+
+## 3. Object graph
+
+Spring creates every object (a "bean") at startup and passes dependencies through constructors. `@SpringBootApplication` scans from `com.university.registry` downward.
+
+Dependencies point one way only (Acyclic Dependencies Principle), and with constructor injection Spring refuses to start if there is a cycle. That is also why the safe-delete methods live in `EnrollmentService`: it already depends on all three entity services, so putting them anywhere else would create a cycle.
+
+```
+GradeService      -> StudentService, CourseService, EnrollmentService, GradeRepository
+EnrollmentService -> StudentService, ProfessorService, CourseService,
+                     StudentCoursesRepository, ProfessorCoursesRepository
+```
+
+## 4. Repository vs service: facts vs decisions
+
+The repository reports **facts**; the service decides what they **mean**.
+
+| Repository (fact) | Service (rule) |
+|---|---|
+| `findById` returned an empty `Optional` | becomes `EntityNotFoundException` |
+| `existsById` returned `true` when adding | becomes `DuplicateEntityException` |
+| `existsByStudentAm` returned `false` for grades | becomes `NoGradesRecordedException` |
+| `existsByCourseId` returned `true` when deleting | becomes `EntityInUseException` |
+
+Two cautions:
+
+- `save()` inserts **or** updates, so it silently overwrites an existing key. The service's existence check before saving is essential.
+- `avg` over zero rows is `NULL` (a `null` `Double`), so the service checks that grades exist before asking for an average.
 
 ## 5. Services are stateless
 
-After the DAO refactor no service holds a `Map` or `List` of data. Services
-hold only references to collaborators (DAOs and other services); the database
-is the single source of truth. Consequences:
-
-- Data survives between runs (use `docs/reset.sql` before a manual test run).
-- Services are safe to share as single instances, which is also what
-  Spring singleton beans will require later.
-- Public method signatures stayed identical through the refactor, so the
-  layers above did not change at all. This is the payoff of layering.
+No service holds data. They hold references to repositories and other services, and the database is the single source of truth. Services are therefore safe to share between the many request threads Tomcat runs.
 
 ## 6. Exception design
 
 ```
 Throwable
   `-- Exception
-        |-- RegistryException (abstract, CHECKED)         domain rule violations
-        |     |-- InvalidSemesterException
-        |     |-- InvalidGradeException
-        |     |-- DuplicateEntityException
-        |     |-- EntityNotFoundException
-        |     |-- EntityInUseException
-        |     `-- NoGradesRecordedException
         `-- RuntimeException
-              `-- DataAccessException (UNCHECKED)         infrastructure failure
+              |-- RegistryException (abstract)      domain rule violations
+              |     |-- InvalidSemesterException
+              |     |-- InvalidGradeException
+              |     |-- DuplicateEntityException
+              |     |-- EntityNotFoundException
+              |     |-- EntityInUseException
+              |     `-- NoGradesRecordedException
+              `-- DataAccessException (Spring)      infrastructure failures
+                    `-- DataIntegrityViolationException
 ```
 
-**Checked vs unchecked.** Both kinds are only ever *thrown* at runtime. The
-only difference is a compile-time rule: for a checked exception the compiler
-requires every method in the chain to declare `throws` or catch it; for an
-unchecked one it requires nothing.
+All domain exceptions are **unchecked**. Spring's handler methods and framework interfaces do not declare checked exceptions, one handler class deals with every domain error, and Spring's transactions roll back on unchecked exceptions by default.
 
-- Checked: things a caller can sensibly react to differently (retry, show a
-  message, pick another ID).
-- Unchecked: broken preconditions or infrastructure failures, where forcing
-  `throws` onto every method would be noise.
+| Exception | HTTP status |
+|---|---|
+| `EntityNotFoundException`, `NoGradesRecordedException` | 404 |
+| `DuplicateEntityException`, `EntityInUseException` | 409 |
+| `InvalidSemesterException`, `InvalidGradeException` | 400 |
+| Bean Validation failure (`MethodArgumentNotValidException`) | 400, with the list of invalid fields |
+| `DataIntegrityViolationException` (a database constraint fired) | 409, generic text |
+| `DataAccessException` | 500, generic text; details go to the log |
 
-**`DataAccessException` is a conversion point.** It is deliberately *not*
-under `RegistryException` (it is not a business rule violation). Two things
-are converted into it at the DAO boundary:
+Domain messages are written for users and are returned as they are. Infrastructure messages are never returned.
 
-1. `SQLException` (checked) is caught in every DAO method and rethrown as
-   `DataAccessException`, so SQL concerns never leak upward.
-2. In `mapRowToX`, an `InvalidSemesterException` while rebuilding an object
-   from a row means the stored data is corrupt (every path in was already
-   validated). That is not a normal case, so it fails loudly instead of
-   returning `null`.
+## 7. Web layer
 
-Always pass the original exception as the cause (`ex`, **not**
-`ex.getCause()`) so the full chain survives in the stack trace.
+- **Controllers are thin translators:** request in, service call, response out. No business rules.
+- **DTOs (Java records)** are the API's own shape, kept separate from the entities: the API survives schema changes, only intended fields are exposed, and update bodies omit the id that the URL already carries. Mapping between DTOs and entities is done by hand.
+- **Validation:** the DTOs check the *format* (a required field is present and fits the column length) with Bean Validation, and the model checks the *rules* (semester of at least 1, grade from 0 to 10). One rule has one owner, so no rule is duplicated.
+- **Errors** use one shape everywhere (`ProblemDetail`, RFC 9457).
+- **API design:** plural nouns, the HTTP verb is the action and the status code is the outcome. Relationships use nested URLs (`/students/{am}/courses/{courseId}`). `PUT` replaces, `POST` creates (201), `DELETE` answers 204. Deletes go through the `...Safely` methods of `EnrollmentService`.
 
-**Catching.** Catch *broadly* (`catch (RegistryException e)`) when any domain
-error gets the same reaction; catch *narrowly* (`catch (DuplicateEntityException e)`)
-when the reaction differs or when a test must confirm exactly the right
-exception fired.
+## 8. Persistence rules
 
-## 7. Database access rules
-
-- **Always `PreparedStatement` with `?` placeholders**, never string
-  concatenation. This prevents SQL injection: the database treats a
-  placeholder's content strictly as a value, never as SQL.
-- **Placeholder order must match the `?` order in the SQL text**, not the
-  order the model's fields are declared in. (A real bug in `StudentDAO.update`
-  came from getting this wrong.)
-- **try-with-resources** for `Connection`, `PreparedStatement` and `ResultSet`.
-  Closing a pooled `Connection` returns it to the pool; a forgotten one
-  eventually freezes the app.
-- `executeUpdate()` is for `INSERT`/`UPDATE`/`DELETE`; `executeQuery()` is for
-  `SELECT`. They are alternatives, never two steps of one process.
-- **Avoid the N+1 query problem.** `findCoursesForStudent` uses one `JOIN`
-  instead of one query for the enrollments plus one query per course.
-- In joins, **list columns explicitly** (`SELECT c.course_id, ...`), because
-  both tables contain a `course_id` column.
-- Multi-line SQL uses Java text blocks (`"""..."""`).
-- Row-to-object mapping lives in one `mapRowToX` helper per DAO (DRY).
-  `CourseDAO.mapRowToCourse` is package-private so `EnrollmentDAO` can reuse
-  it without exposing it outside the `dao` package.
-
-## 8. Layering rule for services
-
-A service talks to **DAOs** for its own entity's data, and to **other
-services** for another entity's data; it never reaches into another entity's
-DAO. Example: `GradeService.recordGrade` checks enrollment through
-`EnrollmentService.isStudentEnrolled(...)`, not `EnrollmentDAO` directly.
-Otherwise two services would become responsible for the same table.
-
-The UI layer likewise talks only to services, never to DAOs, and must call
-the *safe* delete operations in `EnrollmentService` rather than the plain
-`deleteX` methods on the entity services.
+- Entities map onto the handwritten schema, and `ddl-auto=validate` makes a mismatch stop startup. Never use `create`, `create-drop` or `update`.
+- `@Id` on a field means field access: Hibernate bypasses constructors and setters, so model validation does not run when rows are loaded. The database constraints are the second line of defense.
+- Composite keys use `@IdClass`. `StudentCourseId` is shared by `StudentCourses` and `Grade`, which have the same key shape, and `ProfessorCourseId` serves `ProfessorCourses`. Key classes implement `equals` and `hashCode`.
+- Derived queries (`existsByStudentAm`) cover simple lookups. JPQL (`@Query`) covers the joins and the averages. The join avoids the N+1 query problem.
+- `grade_value` is `DECIMAL(4,2)` in the database and a `float` in Java, mapped with `columnDefinition`.
+- Secrets: `db.properties` is git-ignored and imported with `spring.config.import`; only `db.properties.example` is committed.
 
 ## 9. Naming conventions
 
-- **Database:** `snake_case`, plural table names (`students`, `student_courses`,
-  columns `student_am`, `course_id`, `grade_value`).
-- **Java:** `camelCase` fields and methods (`studentAm`, `courseId`).
-- The two are translated in the DAO layer. `snake_case` was chosen over
-  camelCase columns because it is the near-universal SQL convention, and
-  because Spring Boot's default naming strategy maps a Java field
-  `courseId` to a column `course_id` automatically, so the later JPA
-  conversion needs no per-field `@Column` overrides.
-- DAO verbs: `insert`, `findX`, `findAll`, `update`, `delete`.
-  Service verbs: `addX`, `getXBy...`, `updateX`, `deleteX`, `getAllXs`.
-- Javadoc on every public class and method: what it does, `@param`,
-  `@return`, `@throws`.
+- Database: `snake_case`, plural table names. Java: `camelCase`. Spring's default naming maps `courseId` to `course_id`, so most columns need no `@Column`.
+- Repository verbs: `findX`, `existsX`, `save`, `deleteById`. Service verbs: `addX`, `getXBy...`, `updateX`, `deleteX`.
+- Javadoc on every public class and method: what it does, `@param`, `@return`, `@throws`.
 
 ## 10. OOP principles applied
 
-- **Encapsulation:** state is private; the only way to change it is through
-  validated public methods (model setters, service methods).
-- **Abstraction:** `EnrollmentService` calls `studentService.getStudentByAm(...)`
-  without knowing the answer now comes from MariaDB instead of a `HashMap`.
-- **Composition over inheritance:** services *hold* other services; an
-  `EnrollmentService` is not a kind of `StudentService`. (Inheritance is used
-  where there is a real "is-a": `Student`/`Professor` extend `Person`, every
-  domain exception extends `RegistryException`.)
-- **Subtype polymorphism:** one `catch (RegistryException e)` receives any
-  subclass; the runtime checks the real type of the thrown object.
+- **Encapsulation:** state is private; the only way in is through validated methods.
+- **Abstraction:** a service calls `studentService.getStudentByAm(...)` without knowing where the data comes from. The repository interface hides the whole persistence mechanism.
+- **Composition over inheritance:** services hold other services. Inheritance only where there is a real "is-a" (`Student` and `Professor` extend `Person`; domain exceptions extend `RegistryException`).
+- **Polymorphism:** one `@ExceptionHandler` method receives any subclass of the exception it names.
 
-## 11. Clean code principles and patterns applied
+## 11. Clean code principles and patterns
 
-- **DRY:** shared `mapRowToX` helpers; existence checks reuse `getXBy...`.
-- **Fail fast:** preconditions are checked before any mutation; corrupt data
-  throws immediately instead of returning `null`.
-- **Single Responsibility:** applies to methods as well as classes
-  (`DataSourceFactory`'s constructor delegates to `loadProperties()` and
-  `createDataSource()`).
-- **Dependency injection:** a class receives collaborators built elsewhere
-  through its constructor. Initializing a class's *own* internal state in its
-  constructor is ordinary initialization, not injection.
-- **Least privilege:** the app connects as `registry_app`, whose grants are
-  scoped to one database, never as `root`.
-- **Defense in depth:** rules are enforced both in Java (service checks, model
-  validation) and in MariaDB (foreign keys with `ON DELETE RESTRICT`, `CHECK`
-  constraints, composite primary keys).
-- **Design patterns:** DAO/Repository, Dependency Injection, a shared
-  connection pool built once and injected everywhere (singleton by
-  discipline rather than by enforcement).
-- **Secrets stay out of git:** `db.properties` is ignored; only
-  `db.properties.example` is committed.
+- **DRY:** one `StudentCourseId` for two entities; one exception handler for the whole API.
+- **Fail fast:** `ddl-auto=validate`, validation before any write, existence checks before changes.
+- **Single Responsibility:** each class and each method has one job.
+- **Dependency injection (Inversion of Control):** Spring owns object creation and calls our code.
+- **Least privilege:** the app connects as a dedicated database user limited to one database.
+- **Defense in depth:** rules are enforced in the DTOs, the model, the services and the database (foreign keys with `ON DELETE RESTRICT`, `CHECK` constraints, primary keys).
+- **Boundaries with translators:** Tomcat (HTTP), Jackson (JSON and objects), Hibernate (objects and SQL rows), the JDBC driver (SQL and the wire protocol).
 
 ## 12. Database schema
 
-Defined in `docs/schema.sql`. Key decisions:
+Defined in `docs/schema.sql`: `students`, `professors`, `courses`, `student_courses`, `professor_courses`, `grades`.
 
-- Composite primary keys on `student_courses`, `professor_courses` and
-  `grades`: the database-level version of the old `studentAM + "-" + courseId`
-  string key.
-- `ON DELETE RESTRICT` on every foreign key, a database-enforced mirror of the
-  `deleteXSafely` methods.
-- `DECIMAL(4,2)` for grades, not `FLOAT`: exact storage, no rounding surprises.
+- Composite primary keys on the three link tables.
+- `ON DELETE RESTRICT` on every foreign key, a database-level mirror of the safe-delete methods.
 - `CHECK (grade_value >= 0 AND grade_value <= 10)` mirrors `InvalidGradeException`.
 - `utf8mb4` charset, because the data contains Greek text.
-- Enrollment-to-grade integrity is currently enforced in the service layer
-  (`recordGrade` requires an enrollment; `unenrollStudent` refuses when a grade
-  exists). A composite foreign key from `grades` to `student_courses` would
-  enforce it in the database as well.
+- A grade requires an enrollment: enforced in the service layer (`recordGrade`, `unenrollStudent`). A composite foreign key from `grades` to `student_courses` would enforce it in the database as well.
 
-## 13. Development workflow
+## 13. How a request flows
 
-- One branch per refactor/feature, merged into `main` when it works;
-  small commits with imperative messages.
-- Tags mark milestones: `v0.1-in-memory-services` (services backed by
-  `HashMap`/`List`, kept as a reference for the manual logic) and
-  `v0.2-services-use-daos` (everything backed by MariaDB).
-- Data persists between runs, so reset with `docs/reset.sql` before a manual
-  test run. Delete order matters (child tables first) because of the foreign keys.
+A request arrives at Tomcat. Spring MVC matches the URL and verb to a controller method, and Jackson turns the JSON body into a DTO. The controller converts the DTO into an entity and calls the service, which applies the business rules and uses the repository. The result goes back up: entity to response DTO, DTO to JSON, plus a status code. If anything throws, Spring hands the exception to the global handler, which turns it into a status code and an error body.
 
-## 14. Known deliberate trade-offs / not yet done
+## 14. What Spring replaced
 
-- Manual loops instead of Java Streams: deliberate while learning; revisit later.
-- No `equals()`/`hashCode()` on model classes: maps are keyed by `String` IDs.
-- "Check, then act" duplicate detection is fine for a single-user console app
-  (the primary key is the safety net underneath); a concurrent server would
-  need to handle the race explicitly.
-- No logging framework yet (HikariCP prints an SLF4J "NOP logger" warning).
-- Pool size is hard-coded to 10 in `DataSourceFactory`.
-- `StudentCourses` and `ProfessorCourses` model classes are currently unused;
-  decide their fate during the JPA conversion.
-- Automated tests exist only for the exception hierarchy.
-- Spring Boot conversion: `RegistryException` will likely become unchecked,
-  since checked exceptions fit poorly with Spring's exception handling.
+| Written by hand in v0.3 | Spring version |
+|---|---|
+| `Main` building the object graph | The Spring container and constructor injection |
+| `DataSourceFactory`, `db.properties` loading, HikariCP code | `application.properties` and auto-configuration |
+| Five `Jdbc*DAO` classes, SQL strings, `mapRow` | Repository interfaces and Hibernate |
+| `try`/`catch SQLException` wrapped in our own exception | Spring's `DataAccessException` hierarchy |
+| `ConsoleInput` parsing | Jackson, `@PathVariable`, `@RequestBody` |
+| `BaseMenu.run()` catch blocks | `@RestControllerAdvice` |
+| Console menus | Controllers and DTOs |
 
-## 15. UI layer (console)
+## 15. Known trade-offs and what is not done
 
-- **Template Method:** `BaseMenu.run()` owns the loop and the error handling;
-  each menu supplies only `showOptions()` and `handle(int)`.
-- **Hub and spoke:** `MainMenu` routes to the five topic menus; topic menus never
-  know about each other or about `MainMenu`.
-- **Boundary:** `ConsoleInput` turns raw typing into typed values. The UI checks
-  the *format* of input; the model classes decide *validity*.
-- **Error policy:** `RegistryException` shows its own (user-facing) message;
-  `DataAccessException` shows a generic message and the stack trace goes to
-  stderr; any other `RuntimeException` is reported the same way so the program
-  keeps running.
-- **Rules:** menus call only services, and always the *safe* deletes on
-  `EnrollmentService`. Destructive actions use `confirm`, where anything but a
-  clear yes means no.
-- **Known issue:** prompts contain no lookalike letters (Latin `n` vs Greek `ν`);
-  `confirm` appends its own suffix for this reason.
+- Each repository call is its own transaction, so "check then save" in the services is not atomic. The primary keys are the safety net. `@Transactional` is a possible next step.
+- Entities carry JPA annotations directly, so the domain model is not separate from the persistence model.
+- No pagination: list endpoints return every row.
+- No authentication or authorization yet (planned with Spring Security).
+- Automated tests are incomplete: the services other than `StudentService` and the controllers still need them.
+- DTO mapping is manual, and loops are used instead of streams (deliberate while learning).
+- `NoGradesRecordedException` answering 404 is a judgment call.

@@ -13,6 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST endpoints for courses under {@code /courses}.
+ * <p>
+ * A thin translator: it converts the request into Java objects, calls the
+ * services and converts the result into a response. It contains no business
+ * rules. Deletion goes through {@link EnrollmentService#deleteCourseSafely(String)},
+ * so a course who is still assigned cannot be removed.
+ */
 @RestController
 @RequestMapping("/courses")
 public class CourseController

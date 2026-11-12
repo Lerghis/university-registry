@@ -9,6 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST endpoints for student enrollments and professor course assignments.
+ * <p>
+ * A thin translator: it parses incoming HTTP requests, delegates all relationship
+ * operations and lookups to {@link EnrollmentService}, and maps the results into
+ * HTTP responses. It contains no business rules—all existence checks, duplicate
+ * guards, and grade-dependency protections are handled by the service layer.
+ */
 @RestController
 public class EnrollmentController
 {

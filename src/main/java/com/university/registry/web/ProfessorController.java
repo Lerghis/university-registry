@@ -13,6 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST endpoints for professors under {@code /professors}.
+ * <p>
+ * A thin translator: it converts the request into Java objects, calls the
+ * services and converts the result into a response. It contains no business
+ * rules. Deletion goes through {@link EnrollmentService#deleteProfessorSafely(String)},
+ * so a professor who is still assigned cannot be removed.
+ */
 @RestController
 @RequestMapping("/professors")
 public class ProfessorController

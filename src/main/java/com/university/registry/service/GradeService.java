@@ -2,7 +2,6 @@ package com.university.registry.service;
 
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
-import com.university.registry.exception.InvalidGradeException;
 import com.university.registry.exception.NoGradesRecordedException;
 import com.university.registry.model.Grade;
 import com.university.registry.model.StudentCourseId;
@@ -13,24 +12,32 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- /**
- * Business-logic layer for grades. Verifies that the student and course
- * exist and that the student is enrolled before recording a grade,
- * rejects duplicates, and refuses to compute an average when no grades exist.
- * Delegates all storage to {@link GradeRepository}.
+ * Business-logic layer for {@link Grade} objects.
  * <p>
- * All these exceptions are checked, so methods declare them with {@code throws}.
- * Database failures surface separately as the unchecked
- * {@code DataAccessException}.
+ * Verifies that the student and course exist and that the student is enrolled before
+ * recording a grade, rejects duplicate grades, and refuses to compute averages when
+ * no grades exist. Delegates all persistence operations to {@link GradeRepository}.
+ * <p>
+ * All domain and validation exceptions thrown or propagated by this service are unchecked
+ * and handled globally by the application's {@code @RestControllerAdvice} handler, while
+ * database failures surface separately as Spring's unchecked {@code DataAccessException}.
  */
 @Service
 public class GradeService
 {
     private final StudentService studentService;
     private final CourseService courseService;
-    private final EnrollmentService enrollmentService; // to record grades only for student that are enrolled in courses
+    private final EnrollmentService enrollmentService; // Ensures grades are recorded only for enrolled students
     private final GradeRepository gradeRepository;
 
+    /**
+     * Constructs a {@code GradeService} with the required entity services and grade repository.
+     *
+     * @param studentService    the service used to validate {@link com.university.registry.model.Student} existence
+     * @param courseService     the service used to validate {@link com.university.registry.model.Course} existence
+     * @param enrollmentService the service used to verify student enrollment before grading
+     * @param gradeRepository   the Spring Data JPA repository used for {@link Grade} persistence
+     */
     public GradeService(StudentService studentService, CourseService courseService, EnrollmentService enrollmentService, GradeRepository gradeRepository)
     {
         this.studentService = studentService;
@@ -40,16 +47,16 @@ public class GradeService
     }
 
     /**
-     * Records a grade in an enrolled student.
+     * Records a grade for an enrolled student in a specific course.
      *
-     * @param studentAm the student's AM
-     * @param courseId the course's id
-     * @param gradeValue the value of the grade
-     * @throws EntityNotFoundException if the student or the course or the enrollment doesn't exist
-     * @throws DuplicateEntityException if a grade has already been recorded
-     * @throws InvalidGradeException if the grade to be recorded has an invalid value
+     * @param studentAm  the student's AM
+     * @param courseId   the course's ID
+     * @param gradeValue the numeric grade value to record
+     * @throws IllegalArgumentException if {@code gradeValue} is outside the valid grade range
+     * @throws EntityNotFoundException  if the student, the course, or the student's enrollment does not exist
+     * @throws DuplicateEntityException if a grade is already recorded for this student and course
      */
-    public void recordGrade(String studentAm, String courseId, float gradeValue) throws EntityNotFoundException, DuplicateEntityException, InvalidGradeException
+    public void recordGrade(String studentAm, String courseId, float gradeValue)
     {
         Grade newGrade = new Grade(studentAm, courseId, gradeValue); // Construct first to reject an invalid grade without touching the database (fail fast)
         studentService.getStudentByAm(studentAm);
@@ -69,14 +76,14 @@ public class GradeService
     }
 
     /**
-     * Looks for the Grade of a specific Student for a specific Course.
+     * Looks up the {@link Grade} of a specific student for a specific course.
      *
-     * @param studentAm the Student's am (primary key)
-     * @param courseId the Course's id (primary key)
-     * @return the matching Grade
-     * @throws EntityNotFoundException if there is no recorded grade in the database
+     * @param studentAm the student's AM (part of composite primary key)
+     * @param courseId  the course's ID (part of composite primary key)
+     * @return the matching {@link Grade}
+     * @throws EntityNotFoundException if no grade is recorded for the given student and course
      */
-    public Grade getGrade(String studentAm, String courseId) throws EntityNotFoundException
+    public Grade getGrade(String studentAm, String courseId)
     {
         Optional<Grade> grade = gradeRepository.findById(new StudentCourseId(studentAm, courseId));
         if (grade.isEmpty())
@@ -88,27 +95,27 @@ public class GradeService
     }
 
     /**
-     * Gets the list of all the grades of that Student
+     * Retrieves all recorded grades for a specific student.
      *
-     * @param studentAm the Student's am (primary key)
-     * @return the list with all the grades
-     * @throws EntityNotFoundException if the Student isn't found in the database
+     * @param studentAm the student's AM
+     * @return a list containing all {@link Grade} records for the student
+     * @throws EntityNotFoundException if no student exists with the given AM
      */
-    public List<Grade> getGradesForStudent(String studentAm) throws EntityNotFoundException
+    public List<Grade> getGradesForStudent(String studentAm)
     {
         studentService.getStudentByAm(studentAm);
         return gradeRepository.findByStudentAm(studentAm);
     }
 
     /**
-     * Gets the grade average of a student.
+     * Calculates the grade average for a specific student.
      *
      * @param studentAm the student's AM
      * @return the float value of the student's grade average
-     * @throws EntityNotFoundException if the student doesn't exist
-     * @throws NoGradesRecordedException if the student has no grades recorded
+     * @throws EntityNotFoundException   if no student exists with the given AM
+     * @throws NoGradesRecordedException if the student has no recorded grades
      */
-    public float getStudentAverage(String studentAm) throws EntityNotFoundException, NoGradesRecordedException
+    public float getStudentAverage(String studentAm)
     {
         studentService.getStudentByAm(studentAm);
 
@@ -121,14 +128,14 @@ public class GradeService
     }
 
     /**
-     * Gets the grade average of a course.
+     * Calculates the grade average for a specific course.
      *
-     * @param courseId the course's id
+     * @param courseId the course's ID
      * @return the float value of the course's grade average
-     * @throws EntityNotFoundException if the course doesn't exist
-     * @throws NoGradesRecordedException if the course has no grades recorded
+     * @throws EntityNotFoundException   if no course exists with the given ID
+     * @throws NoGradesRecordedException if the course has no recorded grades
      */
-    public float getCourseAverage(String courseId) throws EntityNotFoundException, NoGradesRecordedException
+    public float getCourseAverage(String courseId)
     {
         courseService.getCourseById(courseId);
 
@@ -141,25 +148,25 @@ public class GradeService
     }
 
     /**
-     * Updates the value of a grade.
+     * Updates an existing {@link Grade} after verifying that it exists.
      *
-     * @param grade the grade to be updated
-     * @throws EntityNotFoundException if the grade doesn't exist
+     * @param grade the grade object containing the updated value
+     * @throws EntityNotFoundException if no grade exists for the given student and course
      */
-    public void updateGrade(Grade grade) throws EntityNotFoundException
+    public void updateGrade(Grade grade)
     {
         getGrade(grade.getStudentAm(), grade.getCourseId());
         gradeRepository.save(grade);
     }
 
     /**
-     * Deletes a grade.
+     * Deletes a recorded {@link Grade} after verifying that it exists.
      *
-     * @param studentAm the Student's am
-     * @param courseId the Course's id
-     * @throws EntityNotFoundException if the grade doesn't exist
+     * @param studentAm the student's AM
+     * @param courseId  the course's ID
+     * @throws EntityNotFoundException if no grade exists for the given student and course
      */
-    public void deleteGrade(String studentAm, String courseId) throws EntityNotFoundException
+    public void deleteGrade(String studentAm, String courseId)
     {
         getGrade(studentAm, courseId);
         gradeRepository.deleteById(new StudentCourseId(studentAm, courseId));

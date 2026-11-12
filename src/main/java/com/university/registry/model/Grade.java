@@ -15,7 +15,7 @@ public class Grade
     private String courseId;
 
     /*
-    The columnDefinition is here because the table column is DECIMAL(4,2)
+    The Column definition is here because the table column is DECIMAL(4,2)
     but the Java field is a float, and ddl-auto=validate compares those types.
     By declaring the column definition explicitly we make sure the Hibernate's validator won't complain
      */

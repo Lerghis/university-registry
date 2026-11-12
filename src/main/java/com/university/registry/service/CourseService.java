@@ -12,14 +12,14 @@ import java.util.Optional;
 /**
  * Business-logic layer for {@link Course} objects.
  * <p>
- * Decides what the stored data means (a missing row becomes an
- * {@link EntityNotFoundException}, an existing row on insert becomes a
- * {@link DuplicateEntityException}) and delegates all actual storage to
- * {@link CourseRepository}. Holds no data itself.
+ * Translates repository results into domain rules (a missing record throws an
+ * {@link EntityNotFoundException}, while inserting an existing ID throws a
+ * {@link DuplicateEntityException}) and delegates persistence operations to
+ * {@link CourseRepository}. Holds no state itself.
  * <p>
- * Both exceptions are checked, so methods declare them with {@code throws}.
- * Database failures surface separately as the unchecked
- * {@code DataAccessException}.
+ * All domain exceptions thrown by this service are unchecked and handled globally
+ * by the application's exception handler. Database failures surface separately as
+ * Spring's unchecked {@code DataAccessException}.
  */
 @Service
 public class CourseService
@@ -27,8 +27,9 @@ public class CourseService
     private final CourseRepository courseRepository;
 
     /**
+     * Constructs a {@code CourseService} backed by the given repository.
      *
-     * @param courseRepository is the Interface Spring Data JPA uses to generate the implementation class.
+     * @param courseRepository the Spring Data JPA repository interface used for {@link Course} persistence
      */
     public CourseService(CourseRepository courseRepository)
     {
@@ -36,12 +37,12 @@ public class CourseService
     }
 
     /**
-     * Adds a new Course to the database.
+     * Adds a new {@link Course} to the database.
      *
-     * @param course the course to be added assumed already validated before being passed here
-     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (courseId)
+     * @param course the course to be added, assumed already validated before being passed here
+     * @throws DuplicateEntityException if a course with the same ID already exists
      */
-    public void addCourse(Course course) throws DuplicateEntityException
+    public void addCourse(Course course)
     {
         if (courseRepository.existsById(course.getCourseId()))
         {
@@ -52,13 +53,13 @@ public class CourseService
     }
 
     /**
-     * Looks up for a specific Course by its id.
+     * Looks up a specific {@link Course} by its ID.
      *
-     * @param id the Course's id (primary key)
+     * @param id the course's ID (primary key)
      * @return the matching course
-     * @throws EntityNotFoundException if the Course isn't found in the database
+     * @throws EntityNotFoundException if no course exists with the given ID
      */
-    public Course getCourseById(String id) throws EntityNotFoundException
+    public Course getCourseById(String id)
     {
         Optional<Course> course = courseRepository.findById(id);
         if (course.isEmpty())
@@ -70,33 +71,33 @@ public class CourseService
     }
 
     /**
-     * Updates the Course that's being passed as a parameter after first verifying its existence.
+     * Updates an existing {@link Course} after verifying its existence.
      *
-     * @param updatedCourse the Course to be updated
-     * @throws EntityNotFoundException if the Course isn't found in the database
+     * @param updatedCourse the course with updated fields to save
+     * @throws EntityNotFoundException if no course exists with the given course's ID
      */
-    public void updateCourse(Course updatedCourse) throws EntityNotFoundException
+    public void updateCourse(Course updatedCourse)
     {
         getCourseById(updatedCourse.getCourseId());
         courseRepository.save(updatedCourse);
     }
 
     /**
-     * Deletes the Course matching the given id after first verifying its existence.
+     * Deletes the {@link Course} matching the given ID after verifying its existence.
      *
-     * @param id the identifier of the Course that's going to be deleted
-     * @throws EntityNotFoundException if the Course isn't found in the database
+     * @param id the identifier of the course to be deleted
+     * @throws EntityNotFoundException if no course exists with the given ID
      */
-    public void deleteCourse(String id) throws EntityNotFoundException
+    public void deleteCourse(String id)
     {
         getCourseById(id);
         courseRepository.deleteById(id);
     }
 
     /**
-     * Gets the list of all the Course
-     * objects stored in the database.
-     * @return a collection holding all the courses
+     * Retrieves all {@link Course} objects stored in the database.
+     *
+     * @return a collection holding all courses
      */
     public Collection<Course> getAllCourses()
     {

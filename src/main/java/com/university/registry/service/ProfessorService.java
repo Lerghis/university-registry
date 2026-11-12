@@ -12,14 +12,14 @@ import java.util.Optional;
 /**
  * Business-logic layer for {@link Professor} objects.
  * <p>
- * Decides what the stored data means (a missing row becomes an
- * {@link EntityNotFoundException}, an existing row on insert becomes a
- * {@link DuplicateEntityException}) and delegates all actual storage to
- * {@link ProfessorRepository}. Holds no data itself.
+ * Enforces domain rules on stored data—throwing an {@link EntityNotFoundException}
+ * when a requested record is missing or a {@link DuplicateEntityException} when
+ * attempting to insert an existing record—and delegates persistence operations
+ * to {@link ProfessorRepository}. Holds no state itself.
  * <p>
- * Both exceptions are checked, so methods declare them with {@code throws}.
- * Database failures surface separately as the unchecked
- * {@code DataAccessException}.
+ * Domain exceptions are unchecked and handled globally by the application's
+ * {@code @RestControllerAdvice} handler, while database failures propagate as
+ * Spring's unchecked {@code DataAccessException}.
  */
 @Service
 public class ProfessorService
@@ -27,7 +27,9 @@ public class ProfessorService
     private final ProfessorRepository professorRepository;
 
     /**
-     * @param professorRepository is the Interface Spring Data JPA uses to generate the implementation class.
+     * Constructs a new {@code ProfessorService} with the required repository dependency.
+     *
+     * @param professorRepository the Spring Data JPA repository used for {@link Professor} persistence
      */
     public ProfessorService(ProfessorRepository professorRepository)
     {
@@ -35,12 +37,12 @@ public class ProfessorService
     }
 
     /**
-     * Adds a new Professor to the database.
+     * Adds a new {@link Professor} to the database.
      *
-     * @param professor the professor to be added assumed already validated before being passed here
-     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (profId)
+     * @param professor the professor to be added, assumed already validated before being passed here
+     * @throws DuplicateEntityException if a professor with the same ID already exists
      */
-    public void addProfessor(Professor professor) throws DuplicateEntityException
+    public void addProfessor(Professor professor)
     {
         if (professorRepository.existsById(professor.getProfId()))
         {
@@ -51,13 +53,13 @@ public class ProfessorService
     }
 
     /**
-     * Looks up for a specific Professor by its id.
+     * Looks up a specific {@link Professor} by their ID.
      *
-     * @param id the Professor's id (primary key)
-     * @return the matching Professor
-     * @throws EntityNotFoundException if the Professor isn't found in the database
+     * @param id the professor's ID (primary key)
+     * @return the matching {@link Professor}
+     * @throws EntityNotFoundException if no professor is found with the given ID
      */
-    public Professor getProfById(String id) throws EntityNotFoundException
+    public Professor getProfById(String id)
     {
         Optional<Professor> professor = professorRepository.findById(id);
         if (professor.isEmpty())
@@ -69,34 +71,33 @@ public class ProfessorService
     }
 
     /**
-     * Updates the Professor that's being passed as a parameter after first verifying its existence.
+     * Updates the given {@link Professor} after verifying that it exists.
      *
-     * @param updatedProfessor the Professor to be updated
-     * @throws EntityNotFoundException if the Professor isn't found in the database
+     * @param updatedProfessor the professor containing updated data
+     * @throws EntityNotFoundException if no professor exists with the given ID
      */
-    public void updateProfessor(Professor updatedProfessor) throws EntityNotFoundException
+    public void updateProfessor(Professor updatedProfessor)
     {
         getProfById(updatedProfessor.getProfId());
         professorRepository.save(updatedProfessor);
     }
 
     /**
-     * Deletes the Professor matching the given id after first verifying its existence.
+     * Deletes the {@link Professor} matching the given ID after verifying that it exists.
      *
-     * @param id the identifier of the Professor that's going to be deleted
-     * @throws EntityNotFoundException if the Professor isn't found in the database
+     * @param id the identifier of the professor to be deleted
+     * @throws EntityNotFoundException if no professor exists with the given ID
      */
-    public void deleteProfessor(String id) throws EntityNotFoundException
+    public void deleteProfessor(String id)
     {
         getProfById(id);
         professorRepository.deleteById(id);
     }
 
     /**
-     * Gets the list of all the Professor
-     * objects stored in the database.
+     * Retrieves all {@link Professor} objects stored in the database.
      *
-     * @return a collection holding all the professors
+     * @return a collection holding all stored professors
      */
     public Collection<Professor> getAllProfessors()
     {

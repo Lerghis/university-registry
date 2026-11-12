@@ -12,29 +12,39 @@ import java.util.Optional;
 /**
  * Business-logic layer for {@link Student} objects.
  * <p>
- * Decides what the stored data means (a missing row becomes an
- * {@link EntityNotFoundException}, an existing row on insert becomes a
- * {@link DuplicateEntityException}) and delegates all actual storage to
- * {@link StudentRepository}. Holds no data itself.
+ * Enforces domain rules on stored data—throwing an {@link EntityNotFoundException}
+ * when a requested record is missing or a {@link DuplicateEntityException} when
+ * attempting to insert an existing record—and delegates persistence operations
+ * to {@link StudentRepository}. Holds no state itself.
  * <p>
- * Both exceptions are checked, so methods declare them with {@code throws}.
- * Database failures surface separately as the unchecked
- * {@code DataAccessException}.
+ * Domain exceptions are unchecked and handled globally by the application's
+ * {@code @RestControllerAdvice} handler, while database failures propagate as
+ * Spring's unchecked {@code DataAccessException}.
  */
 @Service
 public class StudentService
 {
     private final StudentRepository studentRepository;
+
     /**
+     * Constructs a new {@code StudentService} with the required repository dependency.
+     * <p>
+     * <b>Architecture Note (How Spring Data JPA Replaces the Old DAO):</b>
+     * <ul>
+     *   <li><b>What it replaced:</b> Previously, a manual {@code JdbcStudentDAO} class contained
+     *       hand-written SQL queries and {@code ResultSet}-to-object mapping code.</li>
+     *   <li><b>How Spring automates it:</b> At application startup, Spring Data JPA reads the
+     *       {@link StudentRepository} interface and dynamically generates a proxy implementation
+     *       class in memory (no manual implementation class is needed).</li>
+     *   <li><b>ORM &amp; JPA under the hood:</b> Through the Jakarta Persistence API (JPA) and
+     *       Hibernate as the ORM provider, Java objects ({@link Student} entities) are
+     *       automatically mapped to database tables and translated into SQL queries.</li>
+     *   <li><b>Runtime database driver:</b> Because the database driver is configured with
+     *       {@code runtime} scope, our code depends only on standard JPA/Spring interfaces at
+     *       compile time, while Hibernate uses the driver at runtime to communicate with the database.</li>
+     * </ul>
      *
-     * @param studentRepository is the Interface Spring Data JPA uses to generate the implementation class (JdbcStudentDAO),
-     *                          which was the class with the SQL queries that communicated with the database.
-     *                          Now, with the runtime scope dependency, the driver is needed when the program runs
-     *                          and that's how everything talks to the database now (interfaces only), without the need
-     *                          of manually writing the SQL and the mapping code.
-     *                          <p></p>
-     *                          Java automates this with ORM (object-relational-mapping) utilizing the JPA (Jakarta Persistence)
-     *                          API, implemented its database actions by a tool like Hibernate.
+     * @param studentRepository the Spring Data JPA repository proxy injected at runtime for {@link Student} persistence
      */
     public StudentService(StudentRepository studentRepository)
     {
@@ -42,12 +52,12 @@ public class StudentService
     }
 
     /**
-     * Adds a new Student to the database after a duplication check.
+     * Adds a new {@link Student} to the database after checking for duplicates.
      *
-     * @param student the student to be added assumed already validated before being passed here
-     * @throws DuplicateEntityException if the adding fails because of a duplicate primary key (am)
+     * @param student the student to be added, assumed already validated before being passed here
+     * @throws DuplicateEntityException if a student with the same AM already exists
      */
-    public void addStudent(Student student) throws DuplicateEntityException
+    public void addStudent(Student student)
     {
         if (studentRepository.existsById(student.getAm()))
         {
@@ -58,13 +68,13 @@ public class StudentService
     }
 
     /**
-     * Looks up for a specific Student by its am.
+     * Looks up a specific {@link Student} by their AM.
      *
-     * @param am the Student's am (primary key)
-     * @return the matching Student
-     * @throws EntityNotFoundException if the Student isn't found in the database
+     * @param am the student's AM (primary key)
+     * @return the matching {@link Student}
+     * @throws EntityNotFoundException if no student is found with the given AM
      */
-    public Student getStudentByAm(String am) throws EntityNotFoundException
+    public Student getStudentByAm(String am)
     {
         Optional<Student> student = studentRepository.findById(am);
         if (student.isEmpty())
@@ -76,34 +86,33 @@ public class StudentService
     }
 
     /**
-     * Updates the Student that's being passed as a parameter after first verifying its existence.
+     * Updates the given {@link Student} after verifying that it exists.
      *
-     * @param updatedStudent the Student to be updated
-     * @throws EntityNotFoundException if the Student isn't found in the database
+     * @param updatedStudent the student containing updated data
+     * @throws EntityNotFoundException if no student exists with the given AM
      */
-    public void updateStudent(Student updatedStudent) throws EntityNotFoundException
+    public void updateStudent(Student updatedStudent)
     {
         getStudentByAm(updatedStudent.getAm());
         studentRepository.save(updatedStudent);
     }
 
     /**
-     * Deletes the Student matching the given am after first verifying its existence.
+     * Deletes the {@link Student} matching the given AM after verifying that it exists.
      *
-     * @param am the identifier of the Student that's going to be deleted
-     * @throws EntityNotFoundException if the Student isn't found in the database
+     * @param am the identifier of the student to be deleted
+     * @throws EntityNotFoundException if no student exists with the given AM
      */
-    public void deleteStudent(String am) throws EntityNotFoundException
+    public void deleteStudent(String am)
     {
         getStudentByAm(am);
         studentRepository.deleteById(am);
     }
 
     /**
-     * Gets the list of all the Student
-     * objects stored in the database.
+     * Retrieves all {@link Student} objects stored in the database.
      *
-     * @return a collection holding all the students
+     * @return a collection holding all stored students
      */
     public Collection<Student> getAllStudents()
     {
