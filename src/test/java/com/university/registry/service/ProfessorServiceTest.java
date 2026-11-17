@@ -3,7 +3,6 @@ package com.university.registry.service;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Professor;
-import com.university.registry.model.Student;
 import com.university.registry.repository.ProfessorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
-public class ProfessorServiceTest
+class ProfessorServiceTest
 {
     private ProfessorRepository professorRepository;
     private ProfessorService professorService;
@@ -30,7 +28,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void addProfessor_withNewProfId_savesProfessor() throws Exception
+    void addProfessor_withNewProfId_savesProfessor()
     {
         Professor newProfessor = new Professor("P1", "Programmer", "Georgiou", "g@x.gr", "100");
         when(professorRepository.existsById("P1")).thenReturn(false);
@@ -41,7 +39,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void addProfessor_withExistingId_throwsDuplicateEntityException() throws Exception
+    void addProfessor_withExistingId_throwsDuplicateEntityException()
     {
         when(professorRepository.existsById("P1")).thenReturn(true); // program the mock
 
@@ -73,7 +71,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void updateProfessor_whenMissing_throwsEntityNotFoundException() throws Exception
+    void updateProfessor_whenMissing_throwsEntityNotFoundException()
     {
         when(professorRepository.findById("P1")).thenReturn(Optional.empty());
 
@@ -89,7 +87,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void updateProfessor_whenExists_changesTheStoredValues() throws Exception
+    void updateProfessor_whenExists_changesTheStoredValues()
     {
         Professor existingProfessor = new Professor("P1", "Programmer", "Georgiou", "g@x.gr", "100");
         Professor newInfo = new Professor("P1", "Programmer", "Nikolaou", "n@x.gr", "100");
@@ -104,7 +102,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void deleteProfessor_whenMissing_throwsEntityNotFoundException() throws Exception
+    void deleteProfessor_whenMissing_throwsEntityNotFoundException()
     {
         when(professorRepository.findById("P1")).thenReturn(Optional.empty());
 
@@ -120,7 +118,7 @@ public class ProfessorServiceTest
     }
 
     @Test
-    void deleteProfessor_whenExists_removesIt() throws Exception
+    void deleteProfessor_whenExists_removesIt()
     {
         Professor existingProfessor = new Professor("P1", "Programmer", "Georgiou", "g@x.gr", "100");
         when(professorRepository.findById("P1")).thenReturn(Optional.of(existingProfessor));

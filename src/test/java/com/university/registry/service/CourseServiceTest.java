@@ -3,7 +3,6 @@ package com.university.registry.service;
 import com.university.registry.exception.DuplicateEntityException;
 import com.university.registry.exception.EntityNotFoundException;
 import com.university.registry.model.Course;
-import com.university.registry.model.Professor;
 import com.university.registry.repository.CourseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
-public class CourseServiceTest
+class CourseServiceTest
 {
     private CourseRepository courseRepository;
     private CourseService courseService;
@@ -30,7 +28,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void addCourse_withNewCourseId_savesCourse() throws Exception
+    void addCourse_withNewCourseId_savesCourse()
     {
         Course newCourse = new Course("C1", "C Programming", 1);
         when(courseRepository.existsById("C1")).thenReturn(false);
@@ -41,7 +39,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void addCourse_withExistingId_throwsDuplicateEntityException() throws Exception
+    void addCourse_withExistingId_throwsDuplicateEntityException()
     {
         when(courseRepository.existsById("C1")).thenReturn(true); // program the mock
 
@@ -73,7 +71,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void updateCourse_whenMissing_throwsEntityNotFoundException() throws Exception
+    void updateCourse_whenMissing_throwsEntityNotFoundException()
     {
         when(courseRepository.findById("C1")).thenReturn(Optional.empty());
 
@@ -89,7 +87,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void updateCourse_whenExists_changesTheStoredValues() throws Exception
+    void updateCourse_whenExists_changesTheStoredValues()
     {
         Course existingCourse = new Course("C1", "C Programming", 1);
         Course newInfo = new Course("C1", "Databases", 1);
@@ -104,7 +102,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void deleteCourse_whenMissing_throwsEntityNotFoundException() throws Exception
+    void deleteCourse_whenMissing_throwsEntityNotFoundException()
     {
         when(courseRepository.findById("C1")).thenReturn(Optional.empty());
 
@@ -120,7 +118,7 @@ public class CourseServiceTest
     }
 
     @Test
-    void deleteCourse_whenExists_removesIt() throws Exception
+    void deleteCourse_whenExists_removesIt()
     {
         Course existingCourse = new Course("C1", "C Programming", 1);
         when(courseRepository.findById("C1")).thenReturn(Optional.of(existingCourse));

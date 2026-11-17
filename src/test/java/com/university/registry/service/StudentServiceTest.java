@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-public class StudentServiceTest
+class StudentServiceTest
 {
     private StudentRepository studentRepository;
     private StudentService studentService;
@@ -27,7 +27,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void addStudent_withNewAm_savesStudent() throws Exception
+    void addStudent_withNewAm_savesStudent()
     {
         Student newStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
         when(studentRepository.existsById("AM1")).thenReturn(false);
@@ -38,7 +38,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void addStudent_withExistingAm_throwsDuplicateEntityException() throws Exception
+    void addStudent_withExistingAm_throwsDuplicateEntityException()
     {
         when(studentRepository.existsById("AM1")).thenReturn(true); // program the mock
 
@@ -70,7 +70,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void updateStudent_whenMissing_throwsEntityNotFoundException() throws Exception
+    void updateStudent_whenMissing_throwsEntityNotFoundException()
     {
         when(studentRepository.findById("AM1")).thenReturn(Optional.empty());
 
@@ -86,7 +86,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void updateStudent_whenExists_changesTheStoredValues() throws Exception
+    void updateStudent_whenExists_changesTheStoredValues()
     {
         Student existingStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
         Student newInfo = new Student("AM1", 1, "Eleni", "e@x.gr", "200");
@@ -101,7 +101,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void deleteStudent_whenMissing_throwsEntityNotFoundException() throws Exception
+    void deleteStudent_whenMissing_throwsEntityNotFoundException()
     {
         when(studentRepository.findById("AM1")).thenReturn(Optional.empty());
 
@@ -117,7 +117,7 @@ public class StudentServiceTest
     }
 
     @Test
-    void deleteStudent_whenExists_removesIt() throws Exception
+    void deleteStudent_whenExists_removesIt()
     {
         Student existingStudent = new Student("AM1", 1, "Maria", "m@x.gr", "100");
         when(studentRepository.findById("AM1")).thenReturn(Optional.of(existingStudent));
