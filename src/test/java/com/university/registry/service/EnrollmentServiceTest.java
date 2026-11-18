@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -335,7 +334,7 @@ class EnrollmentServiceTest
     }
 
     @Test
-    void unassignProfessor_whenAssigned_unassigns()
+    void unassignProfessor_whenAssigned_deletesTheRightKey()
     {
         when(professorCoursesRepository.existsById(new ProfessorCourseId("P1", "C1"))).thenReturn(true);
 
