@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class RegistryExceptionTest
 {
-
     @Test
     void invalidSemesterException_isARegistryException_withUsefulMessage()
     {

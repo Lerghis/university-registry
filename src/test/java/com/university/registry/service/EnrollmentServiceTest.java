@@ -192,7 +192,7 @@ class EnrollmentServiceTest
     }
 
     @Test
-    void getCoursesForStudent_returnsRepositoryList()
+    void getCoursesForStudent_whenStudentExists_returnsRepositoryList()
     {
         List<Course> courses = List.of(new Course("C1", "C Programming", 1));
 
@@ -218,7 +218,7 @@ class EnrollmentServiceTest
     }
 
     @Test
-    void getCoursesForProfessor_returnsRepositoryList()
+    void getCoursesForProfessor_whenProfessorExists_returnsRepositoryList()
     {
         List<Course> courses = List.of(new Course("C1", "C Programming", 1));
 

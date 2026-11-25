@@ -29,14 +29,14 @@ public class EnrollmentController
 
     @PostMapping("/students/{am}/courses/{courseId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public void enroll(@PathVariable String am, @PathVariable String courseId)
+    public void enrollStudent(@PathVariable String am, @PathVariable String courseId)
     {
         enrollmentService.enrollStudentToCourse(am, courseId);
     }
 
     @DeleteMapping("students/{am}/courses/{courseId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unenroll(@PathVariable String am, @PathVariable String courseId)
+    public void unenrollStudent(@PathVariable String am, @PathVariable String courseId)
     {
         enrollmentService.unenrollStudent(am, courseId);
     }
